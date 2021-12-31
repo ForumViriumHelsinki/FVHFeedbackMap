@@ -93,9 +93,9 @@ WSGI_APPLICATION = 'feedback_map_config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": os.environ.get("SQL_ENGINE", "django.db.backends.postgresql"),
-        "NAME": os.environ.get("POSTGRES_DB", "citylogistiikka_dev"),
+        "NAME": os.environ.get("POSTGRES_DB", "feedback_map_dev"),
         "USER": os.environ.get("POSTGRES_USER", "postgres"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "-"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "feedback_map"),
         "HOST": os.environ.get("SQL_HOST", "localhost"),
         "PORT": os.environ.get("SQL_PORT", "5432"),
     }
