@@ -1,13 +1,12 @@
-# Open Logistics Map - OLMap
-App for collecting and discussing geospatial features important for last mile city logistics
-(entrances, steps, gates, barriers etc.) and modeling them for inclusion in OpenStreetMap.
+# FVH Feedback Map
+App for collecting and processing feedback related to geospatial points.
 
 ## Installation
 
 **Prerequisites**: 
 * Python 3.7 with pip
 * Node.js 13.3 with ./node_modules/.bin in the PATH
-* Postgres with a db available as configured in django_server/olmap_config/settings.py
+* Postgres with a db available as configured in django_server/feedback_map_config/settings.py
 
 In project root:
 

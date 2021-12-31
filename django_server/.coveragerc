@@ -1,8 +1,8 @@
 [run]
 omit =
-    olmap_config/asgi.py
-    olmap_config/wsgi.py
-    olmap_config/settings.py
+    feedback_map_config/asgi.py
+    feedback_map_config/wsgi.py
+    feedback_map_config/settings.py
     # 3rd party library added to repo for convenience:
     drf_jsonschema/*
     */migrations/*
