@@ -11,25 +11,21 @@ export type User = {
 
 type userId = number
 
-export type OSMImageNoteComment = {
+export type MapDataPointComment = {
     created_at: string,
     comment: string,
     user: string,
     id: number,
-    image_note: number
+    map_data_point: number
 }
 
-export type OSMImageNote = {
+export type MapDataPoint = {
     id?: number,
     image?: any,
     lat?: number,
     lon?: number,
     comment?: string,
-    osm_features: number[],
-    addresses: number[],
-    is_accepted?: boolean,
     is_processed?: boolean,
-    is_reviewed?: boolean,
     tags?: string[],
     modified_at?: string,
     created_at?: string,
@@ -39,51 +35,15 @@ export type OSMImageNote = {
     },
     upvotes?: userId[],
     downvotes?: userId[],
-    comments?: OSMImageNoteComment[],
-    delivery_instructions?: boolean,
-    height?: number
+    comments?: MapDataPointComment[],
 };
 
 export type Notification = {
     id: number,
-    comment: OSMImageNoteComment
+    comment: MapDataPointComment
 }
 
 export type JSONSchema = any
-
-export type MapFeatureTypes = {
-  [featureType: string]: JSONSchema
-};
-
-export type MapFeature = {
-  as_osm_tags?: object,
-  id?: number,
-  osm_feature?: number,
-  [field: string]: any
-}
-
-export type WorkplaceEntrance = {
-  description?: string,
-  id?: number,
-  image_note?: OSMImageNote,
-  entrance_data?: MapFeature,
-  workplace: number,
-  entrance?: number,
-  delivery_types?: string[],
-  delivery_hours?: string,
-  delivery_instructions?: string
-}
-
-export type OpenOSMChangeset = {
-  id?: number,
-  comment: string
-}
-
-export type OSMEditContextType = {
-  username: string,
-  password: string,
-  changeset?: OpenOSMChangeset
-}
 
 export type AppContextType = {
   user?: User
@@ -91,13 +51,20 @@ export type AppContextType = {
 
 export const AppContext = React.createContext({} as AppContextType);
 
-export type ImageNotesContextType = {
-  osmImageNotes?: OSMImageNote[],
-  mapFeatureTypes?: MapFeatureTypes,
-  addNote: (note: OSMImageNote) => any,
-  refreshNote: (note: OSMImageNote) => any,
-  loadImageNotes: () => any,
+export type MapDataPointsContextType = {
+  mapDataPoints?: MapDataPoint[],
+  addNote: (note: MapDataPoint) => any,
+  refreshNote: (note: MapDataPoint) => any,
+  loadMapDataPoints: () => any,
   user?: User
 }
 
-export const ImageNotesContext = React.createContext({} as ImageNotesContextType);
+export const MapDataPointsContext = React.createContext({} as MapDataPointsContextType);
+
+export type TagColor = 'primary' | 'secondary' | 'green' | 'red';
+
+export type Tag = {
+  tag: string,
+  color: TagColor,
+  icon: string,
+}

@@ -1,5 +1,4 @@
 import React from 'react';
-import {getBounds} from 'geolib';
 // @ts-ignore
 import * as L from 'leaflet';
 import settings from 'settings.json';
@@ -18,7 +17,8 @@ type MapProps = {
   onLocationSelected?: (location: any) => any
   extraLayers?: any[],
   location?: Location,
-  zoom?: number
+  zoom?: number,
+  useUrl?: boolean
 }
 
 type MapState = { currentPosition?: Location, userMovedMap: boolean };
@@ -28,6 +28,8 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
     currentPosition: undefined,
     userMovedMap: false
   };
+
+  static defaultProps = {useUrl: true};
 
   private leafletMap: any = null;
   private markers: {currentPosition?: any, selectedPosition?: any} = {};
@@ -39,14 +41,14 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
 
   render() {
     const {onLocationSelected, extraLayers} = this.props;
-    const {currentPosition} = this.state;
+    const {currentPosition, userMovedMap} = this.state;
     const latlng = this.getInitialPosition();
 
     return <div className="position-relative">
-      {onLocationSelected &&
+      {onLocationSelected && userMovedMap &&
         <div className="position-absolute p-2 text-center w-100" style={{zIndex: 500}}>
             <Button color="primary" size="sm" onClick={() => this.onLocationSelected()}>
-              Select here
+              Siirrä tähän
             </Button>
         </div>
       }
@@ -73,9 +75,9 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
   }
 
   componentDidUpdate(prevProps: MapProps) {
-    const location = this.props.location;
+    const {location, useUrl} = this.props;
     if (location && location != prevProps.location) {
-      urlMapPosition.write(location.lat, location.lon, this.leafletMap?.getZoom() || 18);
+      if (useUrl) urlMapPosition.write(location.lat, location.lon, this.leafletMap?.getZoom() || 18);
       this.setState({userMovedMap: false});
     }
     this.refreshMap();
@@ -83,10 +85,13 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
 
   getInitialPosition() {
     const {currentPosition} = this.state;
+    const {useUrl, location} = this.props;
     const positionFromUrl = urlMapPosition.read();
     // @ts-ignore
+    const locationLatLng = location && [location.lat, location.lon];
+    // @ts-ignore
     const currentLatLng = currentPosition && [currentPosition.lat, currentPosition.lon];
-    return (positionFromUrl || currentLatLng || settings.defaultLocation);
+    return ((useUrl && positionFromUrl) || locationLatLng || currentLatLng || settings.defaultLocation);
   }
 
   refreshMap() {
@@ -129,8 +134,10 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
     this.leafletMap.on('zoomstart', () => this.setState({userMovedMap: true}));
     this.leafletMap.on('movestart', () => this.setState({userMovedMap: true}));
     this.leafletMap.on('move', () => this.mapMoved());
-    this.leafletMap.on('zoomend', () => urlMapPosition.write(...this.getMapState()));
-    this.leafletMap.on('moveend', () => urlMapPosition.write(...this.getMapState()));
+    if (this.props.useUrl) {
+      this.leafletMap.on('zoomend', () => urlMapPosition.write(...this.getMapState()));
+      this.leafletMap.on('moveend', () => urlMapPosition.write(...this.getMapState()));
+    }
     this.refreshMap();
   };
 
@@ -150,11 +157,4 @@ export default class MyPositionMap extends React.Component<MapProps, MapState> {
     const currentLatLng =  [currentPosition.lat, currentPosition.lon];
     this.leafletMap.setView(currentLatLng, 18);
   };
-
-  showPoints(points: any[]) {
-    if (this.leafletMap) {
-      const bounds = getBounds(points);
-      this.leafletMap.fitBounds([[bounds.minLat, bounds.minLng], [bounds.maxLat, bounds.maxLng]]);
-    }
-  }
 }

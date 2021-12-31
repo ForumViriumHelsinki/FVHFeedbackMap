@@ -8,11 +8,12 @@ import LoginScreen from 'components/LoginScreen';
 import LoadScreen from "components/LoadScreen";
 import {AppContext, User} from "components/types";
 import ResetPasswordScreen from "components/ResetPasswordScreen";
-import OSMImageNoteModal from "components/osm_image_notes/OSMImageNoteModal";
+import MapDataPointModal from "components/map_data_points/MapDataPointModal";
 import NavBar from "util_components/bootstrap/NavBar";
 import Confirm from "util_components/bootstrap/Confirm";
-import OSMImageNotesEditor from "components/osm_image_notes/OSMImageNotesEditor";
-import ImageNotesContextProvider from "components/osm_image_notes/ImageNotesContextProvider";
+import MapDataPointsEditor from "components/map_data_points/MapDataPointsEditor";
+import MapDataPointsContextProvider from "components/map_data_points/MapDataPointsContextProvider";
+import TagButtons from "components/TagButtons";
 
 type UIState = {
   user?: User,
@@ -21,7 +22,7 @@ type UIState = {
   menuOpen: boolean
 }
 
-class OLMapUI extends React.Component<{}, UIState> {
+class MainUI extends React.Component<{}, UIState> {
   state: UIState = {
     user: undefined,
     dataFetched: false,
@@ -49,7 +50,7 @@ class OLMapUI extends React.Component<{}, UIState> {
   };
 
   onResize = () => {
-    const el = document.getElementById('OLMapUI');
+    const el = document.getElementById('MainUI');
     // @ts-ignore
     if (el) el.style.height = window.innerHeight;
   };
@@ -62,24 +63,25 @@ class OLMapUI extends React.Component<{}, UIState> {
     const {user, dataFetched, showLogout} = this.state;
 
     // @ts-ignore
-    const ImageNote = () => <OSMImageNoteModal note={{id: useParams().noteId}} fullScreen />;
+    const MapDataPoint = () => <MapDataPointModal note={{id: useParams().noteId}} fullScreen />;
 
     const ResetPassword = () => {
       const params = useParams() as any;
       return <ResetPasswordScreen uid={params.uid} token={params.token}/>;
     };
 
-    const MainUI = (props: {selectedNoteId?: number, newNote?: boolean, osmFeatures?: number[]}) =>
-      <div style={{height: window.innerHeight}} className="flex-column d-flex" id="OLMapUI">
+    const MainUI = (props: {selectedNoteId?: number, newNote?: boolean, osmFeatures?: number[], buttons?: boolean}) =>
+      <div style={{height: window.innerHeight}} className="flex-column d-flex" id="MainUI">
         <NavBar onIconClick={this.onNavIconClick}
                 icon={user ? "account_circle" : "login"}
-                iconText={user ? user.username : 'Sign in'}>
-          <h5 className="m-2">OLMap</h5>
+                iconText={user ? user.username : 'Kirjaudu'}>
+          <h5 className="m-2">FVH Palautekartta</h5>
         </NavBar>
         <div className="flex-grow-1 flex-shrink-1 overflow-auto">
-          <ImageNotesContextProvider>
-            <OSMImageNotesEditor {...props}/>
-          </ImageNotesContextProvider>
+          {props.buttons ? <TagButtons/> :
+            <MapDataPointsContextProvider>
+              <MapDataPointsEditor {...props}/>
+            </MapDataPointsContextProvider>}
         </div>
       </div>;
 
@@ -93,15 +95,19 @@ class OLMapUI extends React.Component<{}, UIState> {
             <ResetPassword/>
           </Route>
           <Route path='/note/:noteId'>
-            <ImageNote/>
+            <MapDataPoint/>
           </Route>
           <Route path='/Notes/new/:osmId(\d+)?/' render={(props: any) => {
             const {osmId} = props.match.params;
             return <MainUI newNote osmFeatures={osmId && [Number(osmId)]}/>
           }} />
-          <Route path='(/Notes)?/:noteId(\d+)?' render={(props: any) =>
+          <Route path='/Notes/:noteId(\d+)?' render={(props: any) =>
             <MainUI selectedNoteId={props.match.params.noteId && Number(props.match.params.noteId)}/>
           } />
+          <Route path='/map/' render={(props: any) =>
+            <MainUI />
+          } />
+          <Route path='/'><MainUI buttons/></Route>
         </Switch>
       </Router>
       {showLogout &&
@@ -118,4 +124,4 @@ class OLMapUI extends React.Component<{}, UIState> {
   }
 }
 
-export default OLMapUI;
+export default MainUI;

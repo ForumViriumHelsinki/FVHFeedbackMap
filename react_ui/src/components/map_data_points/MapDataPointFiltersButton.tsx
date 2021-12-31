@@ -3,28 +3,28 @@ import React from 'react';
 import _ from 'lodash';
 // @ts-ignore
 import {ButtonDropdown, DropdownItem, DropdownMenu, DropdownToggle} from "reactstrap";
-import {AppContext, MapFeatureTypes, OSMImageNote, User} from "components/types";
-import MapToolButton from "components/osm_image_notes/MapToolButton";
+import {AppContext, MapDataPoint, Tag, User} from "components/types";
+import MapToolButton from "components/map_data_points/MapToolButton";
 import sessionRequest from "sessionRequest";
 import {recentMappersUrl} from "urls";
-import {filterNotes} from "components/osm_image_notes/utils";
+import {filterNotes, getTags} from "components/map_data_points/utils";
 
 
-type OSMImageNoteFiltersButtonProps = {
-  mapFeatureTypes?: MapFeatureTypes,
+type MapDataPointFiltersButtonProps = {
   onFiltersChanged: (filters: any) => any,
-  osmImageNotes?: OSMImageNote[]
+  mapDataPoints?: MapDataPoint[]
 }
 
-type OSMImageNoteFiltersButtonState = {
+type MapDataPointFiltersButtonState = {
   filters: any,
   counts: any,
   filtersOpen: boolean,
   recentMappers?: User[],
-  mappersOpen?: boolean
+  mappersOpen?: boolean,
+  tags?: Tag[]
 }
 
-const initialState: () => OSMImageNoteFiltersButtonState = () => ({
+const initialState: () => MapDataPointFiltersButtonState = () => ({
   filters: {},
   counts: {},
   filtersOpen: false
@@ -33,28 +33,27 @@ const initialState: () => OSMImageNoteFiltersButtonState = () => ({
 const _24h = 24 * 3600 * 1000;
 const _90d = 90 * _24h;
 
-const filter24h = (note: OSMImageNote) =>
+const filter24h = (note: MapDataPoint) =>
   // @ts-ignore
   new Date(note.modified_at || note.created_at).valueOf() > new Date().valueOf() - _24h;
 
-const filter90d = (note: OSMImageNote) =>
+const filter90d = (note: MapDataPoint) =>
   // @ts-ignore
   new Date(note.modified_at || note.created_at).valueOf() > new Date().valueOf() - _90d;
 
-const checkHeight = (note: OSMImageNote) => note.height;
-
-export default class OSMImageNoteFiltersButton extends React.Component<OSMImageNoteFiltersButtonProps, OSMImageNoteFiltersButtonState> {
-  state: OSMImageNoteFiltersButtonState = initialState();
+export default class MapDataPointFiltersButton extends React.Component<MapDataPointFiltersButtonProps, MapDataPointFiltersButtonState> {
+  state: MapDataPointFiltersButtonState = initialState();
   static contextType = AppContext;
 
   componentDidMount() {
     sessionRequest(recentMappersUrl).then(response => response.json())
       .then((recentMappers) => this.setState({recentMappers}))
+    getTags.then((tags) => this.setState({tags}));
   }
 
-  componentDidUpdate(prevProps: Readonly<OSMImageNoteFiltersButtonProps>) {
-    const notes = this.props.osmImageNotes;
-    if (notes && (prevProps.osmImageNotes != notes)) {
+  componentDidUpdate(prevProps: Readonly<MapDataPointFiltersButtonProps>) {
+    const notes = this.props.mapDataPoints;
+    if (notes && (prevProps.mapDataPoints != notes)) {
       const filters = Object.entries(this.filterOptions());
       const counts = filters.map(([k, v]) => [k, filterNotes(v, notes).length]);
       this.setState({counts: Object.fromEntries(counts)})
@@ -63,29 +62,23 @@ export default class OSMImageNoteFiltersButton extends React.Component<OSMImageN
 
   filterOptions() {
     const {user} = this.context;
-    const {mapFeatureTypes} = this.props;
-    const {recentMappers} = this.state;
+    const {recentMappers, tags} = this.state;
 
     return {
       '24h': {newer_than: filter24h},
       '90 days': {newer_than: filter90d},
       'My notes': {created_by: user && user.id},
 
-      'New': {is_processed: false, is_reviewed: false, is_accepted: false},
-      'Ready for OSM': {is_processed: false, is_reviewed: false, is_accepted: true},
-      'In OSM': {is_processed: true, is_accepted: true, is_reviewed: false},
-      'Reviewed': {is_processed: true, is_reviewed: true, is_accepted: true},
+      'New': {is_processed: false},
+      'Processed': {is_processed: true},
 
-      'Delivery instructions': {delivery_instructions: true},
-      'Height limitation': {height: checkHeight},
-      ...Object.fromEntries(Object.keys(mapFeatureTypes || {}).map((tag) => [tag, {tags: [tag]}])),
-      ...Object.fromEntries((recentMappers || []).map((mapper) => [mapper.username, {created_by: mapper.id}]))
+      ...Object.fromEntries((recentMappers || []).map((mapper) => [mapper.username, {created_by: mapper.id}])),
+      ...Object.fromEntries((tags || []).map(({tag}) => [tag, {tags: [tag]}])),
     }
   }
 
   render() {
-    const {filters, filtersOpen, recentMappers, mappersOpen, counts} = this.state;
-    const {mapFeatureTypes} = this.props;
+    const {filters, filtersOpen, recentMappers, mappersOpen, counts, tags} = this.state;
     const filterOptions = this.filterOptions();
 
     const FilterItem = ({label}: {label: string}) => {
@@ -120,15 +113,11 @@ export default class OSMImageNoteFiltersButton extends React.Component<OSMImageN
         }
         <DropdownItem divider/>
         <FilterItem label={'New'}/>
-        <FilterItem label={'Ready for OSM'}/>
-        <FilterItem label={'In OSM'}/>
-        <FilterItem label={'Reviewed'}/>
-        <DropdownItem divider/>
-        <FilterItem label="Delivery instructions"/>
-        <FilterItem label="Height limitation"/>
-        {mapFeatureTypes && Object.keys(mapFeatureTypes).map((tag) =>
-          <FilterItem key={tag} label={tag}/>
-        )}
+        <FilterItem label={'Processed'}/>
+        {tags && <>
+          <DropdownItem divider/>
+          {tags.map(({tag}) => <FilterItem label={tag} key={tag}/>)}
+        </>}
       </DropdownMenu>
     </ButtonDropdown>
   }
@@ -142,7 +131,7 @@ export default class OSMImageNoteFiltersButton extends React.Component<OSMImageN
         filters.tags = _.without(filters.tags, tag);
         if (!filters.tags.length) delete filters.tags;
       }
-      else filters.tags = (filters.tags || []).concat(filter.tags);
+      else filters.tags = filter.tags;
     }
     else if (_.isMatch(filters, filter)) Object.keys(filter).forEach(k => delete filters[k]);
     else Object.assign(filters, filter);
