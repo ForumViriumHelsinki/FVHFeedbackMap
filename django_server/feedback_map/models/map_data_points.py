@@ -7,46 +7,34 @@ from django.core.files import File
 from django.db import models
 
 from . import base
-from .base import TimestampedModel, Address
+from .base import TimestampedModel
 
 
-class OSMFeature(base.Model):
-    id = models.BigIntegerField(primary_key=True)
-    associated_entrances = models.ManyToManyField('OSMFeature', related_name='associated_features', blank=True)
-
-    class Meta:
-        ordering = ['id']
-
-    def workplace(self):
-        # use all() to ensure prefetch_related works:
-        if len(self.workplace_set.all()):
-            return self.workplace_set.all()[0]
+def upload_images_to(instance, filename):
+    return f'map_data_points/{instance.id}/{filename}'
 
 
-def upload_osm_images_to(instance, filename):
-    return f'osm_image_notes/{instance.id}/{filename}'
+class Tag(models.Model):
+    tag = models.CharField(max_length=64, primary_key=True, unique=True)
+    color = models.CharField(max_length=32, choices=[(c, c) for c in ['primary', 'secondary', 'green', 'red']], default='primary')
+    icon = models.FileField()
+    published = models.DateTimeField(blank=True, null=True)
 
 
-class OSMImageNote(TimestampedModel):
+class MapDataPoint(TimestampedModel):
     lat = models.DecimalField(max_digits=11, decimal_places=8)
     lon = models.DecimalField(max_digits=11, decimal_places=8)
-    image = models.ImageField(null=True, blank=True, upload_to=upload_osm_images_to)
+    image = models.ImageField(null=True, blank=True, upload_to=upload_images_to)
     comment = models.TextField(blank=True)
     tags = ArrayField(base_field=models.CharField(max_length=64), default=list, blank=True)
-    osm_features = models.ManyToManyField(OSMFeature, blank=True, related_name='image_notes')
-
-    addresses = models.ManyToManyField(Address, blank=True, related_name='image_notes')
 
     created_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name='created_notes')
     modified_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name='modified_notes')
-    accepted_by = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='accepted_notes')
+
     processed_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name='processed_notes')
-    reviewed_by = models.ForeignKey(
-        User, null=True, blank=True, on_delete=models.SET_NULL, related_name='reviewed_notes')
 
     visible = models.BooleanField(default=True)
     hidden_reason = models.TextField(
@@ -91,45 +79,32 @@ class OSMImageNote(TimestampedModel):
 
         return super().save(*args, **kwargs)
 
-    def is_reviewed(self):
-        return bool(self.reviewed_by_id)
-
     def is_processed(self):
         return bool(self.processed_by_id)
 
-    def is_accepted(self):
-        return bool(self.accepted_by_id)
-
     def interested_users(self):
-        from olmap.rest.permissions import REVIEWER_GROUP
+        from feedback_map.rest.permissions import REVIEWER_GROUP
 
         return User.objects.filter(
-            models.Q(id__in=[self.created_by_id, self.modified_by_id, self.processed_by_id, self.reviewed_by_id]) |
-            models.Q(image_note_comments__image_note=self) |
+            models.Q(id__in=[self.created_by_id, self.modified_by_id, self.processed_by_id]) |
+            models.Q(map_data_point_comments__map_data_point=self) |
             models.Q(groups__name=REVIEWER_GROUP)
         ).distinct()
 
-    def link_osm_id(self, osm_id):
-        if osm_id in [f.id for f in self.osm_features.all()]:
-            return
-        feature = OSMFeature.objects.get_or_create(id=osm_id)[0]
-        self.osm_features.add(feature)
-        return feature
+
+class MapDataPointUpvote(base.Model):
+    user = models.ForeignKey(User, related_name='map_data_point_upvotes', on_delete=models.CASCADE)
+    map_data_point = models.ForeignKey(MapDataPoint, related_name='upvotes', on_delete=models.CASCADE)
 
 
-class ImageNoteUpvote(base.Model):
-    user = models.ForeignKey(User, related_name='image_note_upvotes', on_delete=models.CASCADE)
-    image_note = models.ForeignKey(OSMImageNote, related_name='upvotes', on_delete=models.CASCADE)
+class MapDataPointDownvote(base.Model):
+    user = models.ForeignKey(User, related_name='map_data_point_downvotes', on_delete=models.CASCADE)
+    map_data_point = models.ForeignKey(MapDataPoint, related_name='downvotes', on_delete=models.CASCADE)
 
 
-class ImageNoteDownvote(base.Model):
-    user = models.ForeignKey(User, related_name='image_note_downvotes', on_delete=models.CASCADE)
-    image_note = models.ForeignKey(OSMImageNote, related_name='downvotes', on_delete=models.CASCADE)
-
-
-class OSMImageNoteComment(base.Model):
-    user = models.ForeignKey(User, related_name='image_note_comments', on_delete=models.CASCADE, null=True)
-    image_note = models.ForeignKey(OSMImageNote, related_name='comments', on_delete=models.CASCADE)
+class MapDataPointComment(base.Model):
+    user = models.ForeignKey(User, related_name='map_data_point_comments', on_delete=models.CASCADE, null=True)
+    map_data_point = models.ForeignKey(MapDataPoint, related_name='comments', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     comment = models.TextField()
 
@@ -141,15 +116,15 @@ class OSMImageNoteComment(base.Model):
 
     def notify_users(self):
         """
-        Create OSMImageNoteCommentNotifications for users interested in this image note to notify them of the new
+        Create MapDataPointCommentNotifications for users interested in this image note to notify them of the new
         comment
         """
-        for user in self.image_note.interested_users():
+        for user in self.map_data_point.interested_users():
             if user != self.user:
                 self.notifications.create(user=user)
 
 
-class OSMImageNoteCommentNotification(base.Model):
-    comment = models.ForeignKey(OSMImageNoteComment, related_name='notifications', on_delete=models.CASCADE)
+class MapDataPointCommentNotification(base.Model):
+    comment = models.ForeignKey(MapDataPointComment, related_name='notifications', on_delete=models.CASCADE)
     user = models.ForeignKey(User, related_name='notifications', on_delete=models.CASCADE)
     seen = models.DateTimeField(null=True, blank=True, db_index=True)
