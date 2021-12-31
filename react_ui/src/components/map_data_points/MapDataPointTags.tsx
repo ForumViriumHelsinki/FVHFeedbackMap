@@ -1,33 +1,31 @@
 import React from 'react';
 import PillsSelection from "util_components/PillsSelection";
-import {MapFeatureTypes} from "components/types";
 import Icon from "util_components/bootstrap/Icon";
 
-type OSMImageNoteTagsProps = {
-  mapFeatureTypes?: MapFeatureTypes,
+type MapDataPointTagsProps = {
   tags: string[],
   onChange: (tags: string[]) => any,
   readOnly?: boolean,
   expanded?: boolean
 }
 
-type OSMImageNoteTagsState = {
+type MapDataPointTagsState = {
   editing: boolean
 }
 
-const initialState: OSMImageNoteTagsState = {
+const initialState: MapDataPointTagsState = {
   editing: false
 };
 
 const defaultTags = ['Problem'];
 
-export default class OSMImageNoteTags extends React.Component<OSMImageNoteTagsProps> {
+export default class MapDataPointTags extends React.Component<MapDataPointTagsProps> {
   state = initialState;
 
   render() {
-    const {mapFeatureTypes, tags, readOnly, expanded} = this.props;
+    const {tags, readOnly, expanded} = this.props;
     const {editing} = this.state;
-    const tagOptions = editing && mapFeatureTypes ? defaultTags.concat(Object.keys(mapFeatureTypes)) : tags;
+    const tagOptions = tags;
     return <div className="list-group-item">
       <strong>Tags: </strong>
       {readOnly ?

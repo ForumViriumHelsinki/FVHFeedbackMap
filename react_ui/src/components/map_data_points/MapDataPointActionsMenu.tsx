@@ -1,12 +1,12 @@
 import React from 'react';
 import Icon from "util_components/bootstrap/Icon";
-import {OSMImageNote} from "components/types";
-import OSMImageNoteReviewActions from "components/osm_image_notes/OSMImageNoteReviewActions";
+import {MapDataPoint} from "components/types";
+import MapDataPointReviewActions from "components/map_data_points/MapDataPointReviewActions";
 import sessionRequest from "sessionRequest";
-import {osmImageNoteUrl} from "urls";
+import {mapDataPointUrl} from "urls";
 
-type OSMImageNoteActionsMenuProps = {
-  note: OSMImageNote,
+type MapDataPointActionsMenuProps = {
+  note: MapDataPoint,
   showOnMap?: () => any,
   adjustPosition?: () => any,
   closeNote: () => any,
@@ -14,15 +14,15 @@ type OSMImageNoteActionsMenuProps = {
   refreshNote: () => any
 }
 
-type OSMImageNoteActionsMenuState = {
+type MapDataPointActionsMenuState = {
   show: boolean
 }
 
-const initialState: OSMImageNoteActionsMenuState = {
+const initialState: MapDataPointActionsMenuState = {
   show: false
 };
 
-export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNoteActionsMenuProps, OSMImageNoteActionsMenuState> {
+export default class MapDataPointActionsMenu extends React.Component<MapDataPointActionsMenuProps, MapDataPointActionsMenuState> {
   state = initialState;
 
   render() {
@@ -32,7 +32,6 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
     const {show} = this.state;
     const showCls = show ? ' show' : '';
 
-    const noteUrl = `https://app.olmap.org/#/Notes/@${lat},${lon},20`;
     const googleUrl = `https://maps.google.com/?layer=c&cbll=${note?.lat},${note.lon}`;
     const mapillaryUrl = `https://www.mapillary.com/app/?lat=${note?.lat}&lng=${note.lon}&z=20&panos=true`;
     const osmUrl = `https://www.openstreetmap.org/edit#map=20/${lat}/${lon}`;
@@ -51,7 +50,7 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
             <Icon icon="open_with"/> Move note
           </button>}
 
-        <input name="image" id="image_note_image" className="d-none" type="file"
+        <input name="image" id="map_data_point_image" className="d-none" type="file"
            accept="image/*" capture="environment"
            onChange={this.onImageCaptured}/>
 
@@ -62,10 +61,6 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
         }
 
         <h6 className="dropdown-header">Show position in:</h6>
-        {showOnMap ?
-            <button className="dropdown-item" onClick={showOnMap}>OLMap</button>
-          : <a className="dropdown-item" href={noteUrl} target="_blank">OLMap</a>
-        }
         <a className="dropdown-item" target="google-maps" href={googleUrl}>
           Google Street View
         </a>
@@ -76,7 +71,7 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
           OpenStreetMap
         </a>
 
-        <OSMImageNoteReviewActions imageNote={note} onReviewed={closeNote}/>
+        <MapDataPointReviewActions mapDataPoint={note} onProcessed={closeNote}/>
       </div>
       <textarea id="permalink" value={window.location.href} style={{width: 0, height: 0, opacity: 0}} readOnly/>
     </div>;
@@ -88,7 +83,7 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
   };
 
   private imageEl() {
-    return document.getElementById('image_note_image') as HTMLInputElement;
+    return document.getElementById('map_data_point_image') as HTMLInputElement;
   }
 
   onImageClick = () => {
@@ -101,7 +96,7 @@ export default class OSMImageNoteActionsMenu extends React.Component<OSMImageNot
     const image = files[0];
     let formData = new FormData();
     formData.append('image', image);
-    sessionRequest(osmImageNoteUrl(note.id as number), {method: 'PATCH', body: formData})
+    sessionRequest(mapDataPointUrl(note.id as number), {method: 'PATCH', body: formData})
     .then((response: any) => {
       if ((response.status < 300)) {
         refreshNote();

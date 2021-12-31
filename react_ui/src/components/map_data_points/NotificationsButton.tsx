@@ -5,7 +5,7 @@ import {AppContext, Notification} from "components/types";
 import sessionRequest from "sessionRequest";
 import {notificationSeenUrl, notificationsUrl} from "urls";
 import {formatTimestamp} from "utils";
-import MapToolButton from "components/osm_image_notes/MapToolButton";
+import MapToolButton from "components/map_data_points/MapToolButton";
 
 
 type NotificationsButtonProps = {}
@@ -35,7 +35,7 @@ export default class NotificationsButton extends React.Component<NotificationsBu
       <DropdownMenu>
         <div className="text-ellipsis" style={{maxWidth: '50vw', maxHeight: 'calc(100vh - 200px)', overflowY: 'auto'}}>
           {notifications.map(notification =>
-            <a href={`#/Notes/${notification.comment.image_note}`}
+            <a href={`#/Notes/${notification.comment.map_data_point}`}
                onClick={() => this.markSeen(notification.id)}
                key={notification.id}>
               <DropdownItem>

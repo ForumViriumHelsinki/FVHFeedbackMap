@@ -1,7 +1,7 @@
 import settings from './settings';
 
 export function login(token) {
-  localStorage.setItem('olmap-token', token);
+  localStorage.setItem('feedback_map-token', token);
 }
 
 export function logout() {
@@ -15,7 +15,7 @@ export function sessionRequest(url, options={}) {
     options.body = JSON.stringify(options.data);
   }
   try {
-    const token = localStorage.getItem('olmap-token');
+    const token = localStorage.getItem('feedback_map-token');
     if (token) {
       options.headers.Authorization = "Token " + token;
     }

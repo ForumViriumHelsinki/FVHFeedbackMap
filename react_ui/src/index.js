@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import App from './OLMapUI';
+import App from './MainUI';
 import * as serviceWorker from './serviceWorker';
 import styles from './index.scss'; // eslint-disable-line
 

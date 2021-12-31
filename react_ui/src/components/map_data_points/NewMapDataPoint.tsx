@@ -8,39 +8,33 @@ import Modal from "util_components/bootstrap/Modal";
 import ErrorAlert from "util_components/bootstrap/ErrorAlert";
 
 import sessionRequest from "sessionRequest";
-import {osmImageNotesUrl, osmImageNoteUrl} from "urls";
-import {ImageNotesContext, OSMImageNote} from "components/types";
-import OSMFeaturesSelection from "util_components/osm/OSMFeaturesSelection";
-import MapFeatureSet from "components/map_features/MapFeatureSet";
-import OSMImageNoteTags from "components/osm_image_notes/OSMImageNoteTags";
-import {OSMFeature} from "util_components/osm/types";
-import NearbyAddressesAsOSMLoader from "components/osm_image_notes/NearbyAddressesAsOSMLoader";
+import {mapDataPointsUrl, mapDataPointUrl} from "urls";
+import {MapDataPointsContext, MapDataPoint} from "components/types";
+import MapDataPointTags from "components/map_data_points/MapDataPointTags";
 import Confirm from "util_components/bootstrap/Confirm";
-import MapToolButton from "components/osm_image_notes/MapToolButton";
+import MapToolButton from "components/map_data_points/MapToolButton";
 
 
-type NewOSMImageNoteProps = {
+type NewMapDataPointProps = {
   requestNoteType?: boolean,
   osmFeatures?: number[]
   requestLocation: (cb: (l: Location) => any) => any,
   cancelLocationRequest: () => any
 }
 
-type NewOSMImageNoteState = OSMImageNote & {
-  status: 'initial' | 'locating' | 'relating' | 'commenting' | 'thanks',
+type NewMapDataPointState = MapDataPoint & {
+  status: 'initial' | 'locating' | 'commenting' | 'thanks',
   submitting: boolean,
   error: boolean,
   imageError: boolean,
-  imagesUploading: OSMImageNote[],
+  imagesUploading: MapDataPoint[],
   tags: string[],
   mapFeatureSets: any,
-  nearbyFeatures: OSMFeature[],
-  nearbyAddresses: OSMFeature[],
   chooseNoteType?: boolean,
   confirmCancel?: boolean
 }
 
-const initialState: () => NewOSMImageNoteState = () => ({
+const initialState: () => NewMapDataPointState = () => ({
   status: 'initial',
   lat: undefined,
   lon: undefined,
@@ -60,15 +54,14 @@ const initialState: () => NewOSMImageNoteState = () => ({
 
 const {imagesUploading, ...resetState} = initialState();
 
-export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProps, NewOSMImageNoteState> {
-  state: NewOSMImageNoteState = initialState();
-  static contextType = ImageNotesContext;
+export default class NewMapDataPoint extends React.Component<NewMapDataPointProps, NewMapDataPointState> {
+  state: NewMapDataPointState = initialState();
+  static contextType = MapDataPointsContext;
 
   render() {
     const {mapFeatureTypes} = this.context;
     const {
       status, lat, lon, submitting, error, imageError, imagesUploading, tags,
-      mapFeatureSets, osm_features, nearbyFeatures, nearbyAddresses, addresses,
       chooseNoteType, confirmCancel
     } = this.state;
 
@@ -104,19 +97,6 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
                 Cancel
               </MapToolButton>
             </div>,
-          relating:
-            <Modal title="Choose related places (optional)" onClose={this.onCancel}>
-              <NearbyAddressesAsOSMLoader
-                location={location}
-                onLoad={nearbyAddresses => this.setState({nearbyAddresses})} />
-              <OSMFeaturesSelection
-                location={location}
-                extraFeatures={nearbyAddresses}
-                preselectedFeatureIds={this.props.osmFeatures}
-                onFeaturesLoaded={(nearbyFeatures) => this.setState({nearbyFeatures})}
-                onSelect={(osm_features, addresses) =>
-                            this.setState({osm_features, addresses: addresses || [], status: 'commenting'})}/>
-            </Modal>,
           commenting:
             <Modal title="Add comment" onClose={this.onCancel}>
               <ErrorAlert status={error} message="Submit failed. Try again maybe?"/>
@@ -124,21 +104,7 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
                         placeholder="Describe the problem / note (optional)"
                         onChange={(e) =>
                           this.setState({comment: e.target.value})} />
-              {mapFeatureTypes &&
-                <>
-                  <OSMImageNoteTags {...{tags, mapFeatureTypes}} expanded onChange={tags => this.setState({tags})}/>
-                  <div className="ml-2 mr-2">
-                    {tags.filter(tag => mapFeatureTypes[tag]).map((tag) =>
-                      <MapFeatureSet
-                        key={tag} schema={mapFeatureTypes[tag]} featureTypeName={tag}
-                        osmImageNote={{osm_features, addresses, ...mapFeatureSets}}
-                        onSubmit={(data) => this.addMapFeatureSets(data)}
-                        nearbyFeatures={nearbyFeatures.concat(nearbyAddresses)}
-                        addNearbyFeature={(f) => this.setState({nearbyFeatures: [f].concat(nearbyFeatures)})}/>
-                    )}
-                  </div>
-                </>
-              }
+              <MapDataPointTags expanded tags={tags} onChange={tags => this.setState({tags})}/>
               <Button block disabled={submitting} color="primary" size="sm"
                       onClick={submitting ? undefined : this.onSubmit}>
                 {submitting ? 'Submitting...' : 'Done'}
@@ -182,10 +148,6 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
     if (requestNoteType) this.setState({chooseNoteType: true});
   }
 
-  private addMapFeatureSets(data: any) {
-    this.setState({mapFeatureSets: {...this.state.mapFeatureSets, ...data}});
-  }
-
   onImageClick = () => {
     this.imageEl().click();
     this.setState({chooseNoteType: false});
@@ -208,7 +170,7 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
 
   onLocationSelected = (location?: Location) => {
     if (location)
-      this.setState({status: "relating", ...location});
+      this.setState({status: "commenting", ...location});
     else this.setState(resetState);
   };
 
@@ -226,16 +188,16 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
   };
 
   onSubmit = () => {
-    const {comment, lon, lat, osm_features, addresses, image, imagesUploading, tags, mapFeatureSets} = this.state;
-    const fields = {comment, lat, lon, osm_features, addresses, tags, ...mapFeatureSets};
+    const {comment, lon, lat, image, imagesUploading, tags} = this.state;
+    const fields = {comment, lat, lon, tags};
     const {addNote} = this.context;
 
     this.setState({submitting: true});
 
-    sessionRequest(osmImageNotesUrl, {method: 'POST', data: fields})
+    sessionRequest(mapDataPointsUrl, {method: 'POST', data: fields})
     .then((response: any) => {
       if ((response.status >= 300)) return this.setState({error: true, submitting: false});
-      response.json().then((data: OSMImageNote) => {
+      response.json().then((data: MapDataPoint) => {
         this.setState({...resetState, status: "thanks"});
 
         if (!image) {
@@ -246,7 +208,7 @@ export default class NewOSMImageNote extends React.Component<NewOSMImageNoteProp
         let formData = new FormData();
         formData.append('image', image);
         this.setState({imagesUploading: imagesUploading.concat([data])});
-        sessionRequest(osmImageNoteUrl(data.id as number), {method: 'PATCH', body: formData})
+        sessionRequest(mapDataPointUrl(data.id as number), {method: 'PATCH', body: formData})
         .then((response: any) => {
           const uploading = this.state.imagesUploading.slice();
           uploading.splice(uploading.indexOf(data, 1));

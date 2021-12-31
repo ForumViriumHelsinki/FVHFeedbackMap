@@ -1,35 +1,35 @@
 import React from 'react';
-import {AppContext, OSMImageNote} from "components/types";
+import {AppContext, MapDataPoint} from "components/types";
 import {formatTimestamp} from "utils";
 import sessionRequest from "sessionRequest";
-import {osmImageNoteCommentsUrl, osmImageNoteCommentUrl} from "urls";
+import {mapDataPointCommentsUrl, mapDataPointCommentUrl} from "urls";
 import ErrorAlert from "util_components/bootstrap/ErrorAlert";
 import Icon from "util_components/bootstrap/Icon";
 
-type OSMImageNoteCommentsProps = {
-  osmImageNote: OSMImageNote,
+type MapDataPointCommentsProps = {
+  mapDataPoint: MapDataPoint,
   refreshNote: () => any
 }
 
-type OSMImageNoteCommentsState = {
+type MapDataPointCommentsState = {
   error: boolean,
   changed: boolean
 }
 
-const initialState: OSMImageNoteCommentsState = {
+const initialState: MapDataPointCommentsState = {
   error: false,
   changed: false
 };
 
-export default class OSMImageNoteComments extends React.Component<OSMImageNoteCommentsProps> {
+export default class MapDataPointComments extends React.Component<MapDataPointCommentsProps> {
   state = initialState;
   static contextType = AppContext;
 
   render() {
-    const {osmImageNote, refreshNote} = this.props;
+    const {mapDataPoint, refreshNote} = this.props;
     const {error, changed} = this.state;
     const {user} = this.context;
-    const comments = osmImageNote.comments || [];
+    const comments = mapDataPoint.comments || [];
 
     return <div className="m-2 ml-3">
       <p>
@@ -60,10 +60,10 @@ export default class OSMImageNoteComments extends React.Component<OSMImageNoteCo
   }
 
   submit = () => {
-    const {osmImageNote, refreshNote} = this.props;
+    const {mapDataPoint, refreshNote} = this.props;
     const commentEl = document.getElementById('new-comment') as HTMLTextAreaElement;
-    const data = {image_note: osmImageNote.id, comment: commentEl.value};
-    sessionRequest(osmImageNoteCommentsUrl, {method: 'POST', data}).then(response => {
+    const data = {map_data_point: mapDataPoint.id, comment: commentEl.value};
+    sessionRequest(mapDataPointCommentsUrl, {method: 'POST', data}).then(response => {
       if (response.status >= 400) this.setState({error: true});
       else {
         this.setState({error: false, changed: false});
@@ -76,7 +76,7 @@ export default class OSMImageNoteComments extends React.Component<OSMImageNoteCo
   onDelete = (commentId: number) => {
     const {refreshNote} = this.props;
 
-    sessionRequest(osmImageNoteCommentUrl(commentId), {method: 'DELETE'}).then(response => {
+    sessionRequest(mapDataPointCommentUrl(commentId), {method: 'DELETE'}).then(response => {
       if (response.status >= 400) this.setState({error: true});
       else {
         this.setState({error: false});
