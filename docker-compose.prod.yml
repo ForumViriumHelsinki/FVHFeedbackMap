@@ -3,7 +3,7 @@ version: '3.7'
 services:
   web:
     build: ./django_server
-    command: gunicorn application_evaluator_config.wsgi:application --bind 0.0.0.0:8000 --access-logfile access.log --error-logfile error.log --capture-output --workers 4
+    command: gunicorn feedback_map_config.wsgi:application --bind 0.0.0.0:8000 --access-logfile access.log --error-logfile error.log --capture-output --workers 4
     network_mode: host
     env_file:
       - ./.env.prod
