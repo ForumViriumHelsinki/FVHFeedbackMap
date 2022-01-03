@@ -1,4 +1,4 @@
-name: City Logistics tests CI
+name: FVH Feedback Map CI
 
 on: [push]
 

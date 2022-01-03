@@ -24,3 +24,6 @@ __pycache__
 /scripts/entrances_with_distance.json
 /scripts/temp/
 /scripts/osm_building_entrance_addresses.json
+/.env.prod
+/docker-compose.yml
+/react_ui/src/settings.json

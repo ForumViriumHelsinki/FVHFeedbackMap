@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  web:
+    build: ./django_server
+    command: gunicorn application_evaluator_config.wsgi:application --bind 0.0.0.0:8000 --access-logfile access.log --error-logfile error.log --capture-output --workers 4
+    network_mode: host
+    env_file:
+      - ./.env.prod
+    volumes:
+      - ./django_server:/app
+    restart: always
+
+  react:
+    build: ./react_ui
+    command: yarn build
+    volumes:
+      - ./react_ui/build:/app/build
+      - ./react_ui/src:/app/src
+      - ./react_ui/public:/app/public
