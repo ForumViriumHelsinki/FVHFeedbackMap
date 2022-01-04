@@ -34,7 +34,7 @@ export default class TagButtons extends React.Component<TagButtonsProps, TagButt
   render() {
     const {} = this.props;
     const {tags, dataPoint} = this.state;
-    const maxHeight = !tags ? 0 : Math.round(60 / tags.length) + 'vh';
+    const maxHeight = !tags ? 0 : Math.round(40 / tags.length) + 'vh';
     return !tags ? '' : <div className="p-2 d-flex flex-column flex" style={{height: '100%'}}>
       <Geolocator onLocation={([lon, lat]) => this.setState({currentPosition: {lat, lon}})}/>
       {tags.map(({tag, icon, color}) =>
