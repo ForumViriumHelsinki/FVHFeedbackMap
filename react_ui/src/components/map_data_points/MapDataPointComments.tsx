@@ -42,7 +42,7 @@ export default class MapDataPointComments extends React.Component<MapDataPointCo
       {comments.map(comment =>
         <div key={comment.id} className="mb-2 mt-2">
           <strong>{comment.user || 'Anonymous'} {formatTimestamp(comment.created_at)}:</strong>
-          {user.is_reviewer &&
+          {user && user.is_reviewer &&
             <button className="btn btn-light btn-compact btn-discrete p-0 ml-1"
                     onClick={() => this.onDelete(comment.id)}>
               <Icon icon="delete_outline"/>
