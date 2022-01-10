@@ -1,5 +1,6 @@
 from django.conf import settings
 from rest_framework import serializers
+from rest_framework.generics import get_object_or_404
 
 from feedback_map import models
 
@@ -49,12 +50,28 @@ class DictMapDataPointSerializer(BaseMapDataPointSerializer):
         return settings.MEDIA_URL + note['image'] if note.get('image', None) else None
 
 
+class ButtonPositionField(serializers.Field):
+    def to_representation(self, data_point):
+        if len(data_point.tags):
+            tag = models.Tag.objects.filter(
+                tag__in=data_point.tags, published__isnull=False, button_position__isnull=False).first()
+            if tag:
+                return {'button_position': tag.button_position}
+        return {}
+
+    def to_internal_value(self, position):
+        if position:
+            return {'tags': [get_object_or_404(models.Tag, button_position=position, published__isnull=False).tag]}
+        return {}
+
+
 class MapDataPointSerializer(BaseMapDataPointSerializer):
     # upvotes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='user_id')
     # downvotes = serializers.SlugRelatedField(many=True, read_only=True, slug_field='user_id')
     comments = MapDataPointCommentSerializer(many=True, read_only=True)
+    button_position = ButtonPositionField(source='*', required=False)
 
     class Meta:
         model = models.MapDataPoint
-        fields = ['id', 'comment', 'image', 'lat', 'lon', 'created_at',
+        fields = ['id', 'comment', 'image', 'lat', 'lon', 'created_at', 'button_position',
                   'is_processed', 'tags', 'created_by', 'comments']  #, 'upvotes', 'downvotes']

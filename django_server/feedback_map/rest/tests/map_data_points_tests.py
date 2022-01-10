@@ -3,6 +3,7 @@ import os
 from django.contrib.auth.models import Group, User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 
 from .base import FVHAPITestCase
@@ -96,6 +97,30 @@ class MapDataPointsTests(FVHAPITestCase):
         # And a note is updated in db:
         note = models.MapDataPoint.objects.get()
         self.assertEqual(note.image.name, f'map_data_points/{note.id}/image.png')
+
+    def test_save_anonymous_map_data_point_with_button_position(self):
+        # Given that no user is signed in
+        # And given a published Tag with button position field defined
+        models.Tag.objects.create(tag='Smelly', button_position=1, published=timezone.now())
+
+        # When requesting to save an Map Data Point over ReST, giving a button position
+        url = reverse('mapdatapoint-list')
+        fields = {
+            'lat': '60.16134701761975',
+            'lon': '24.944593941327188',
+            'comment': 'Nice view',
+            'button_position': 1
+        }
+        response = self.client.post(url, data=fields, format='json')
+
+        # Then an OK response is received:
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+        # And a note is created in db:
+        note = models.MapDataPoint.objects.get()
+
+        # And it creates tags based on given button position:
+        self.assertSetEqual(set(note.tags), set(['Smelly']))
 
     def test_update_map_data_point_tags(self):
         # Given that a user is signed in
