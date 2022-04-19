@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  kafka2api:
+    build:
+      context: ./kafka2api
+      target: development
+    volumes:
+      - ./kafka2api:/home/app
+      - ./kafka2api/FVHIoT-python/fvhiot:/home/app/fvhiot
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: python kafka2api.py
+    env_file:
+      - kafka2api.env
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: "20m"
+    container_name: kafka2api
