@@ -1,8 +1,20 @@
 """
 Consume parsed data messages from Kafka topic and send the data to FVHFeedbackMap rest endpoint using requests.
-
-Sample parsed data message:
 """
+
+import datetime
+import logging
+import os
+import time
+from pprint import pformat, pprint
+from typing import Tuple, Optional
+from zoneinfo import ZoneInfo
+
+import requests
+
+from fvhiot.utils import init_script
+from fvhiot.utils.data import data_unpack
+from fvhiot.utils.kafka import get_kafka_consumer_by_envs
 
 sample_data = {
     'data': [{'f': {'0': {'v': 2},
@@ -35,20 +47,6 @@ sample_data = {
     'version': '1.0'
 }
 
-import datetime
-import logging
-import os
-import time
-from pprint import pformat, pprint
-from typing import Tuple, Optional
-from zoneinfo import ZoneInfo
-
-import requests
-
-from fvhiot.utils import init_script
-from fvhiot.utils.data import data_unpack
-from fvhiot.utils.kafka import get_kafka_consumer_by_envs
-
 
 def upload_to_api(api_url: str, api_token: str, data: dict) -> Tuple[bool, Optional[requests.Response]]:
     """Upload given data to rest API and return requests.Response or None (in the case of exception)."""
@@ -71,6 +69,29 @@ def upload_to_api(api_url: str, api_token: str, data: dict) -> Tuple[bool, Optio
     return ok, res
 
 
+def transform_data(data: dict) -> dict:
+    pprint(data)
+    header = data["header"]
+    datalines = data["data"]
+    device_id = data["device"]["device_id"]
+    for dl in datalines:
+        flatted = {}  # simplify parsed data payload to one-level dict
+        for dk in dl["f"].keys():
+            flatted[header["columns"][dk]["name"]] = dl["f"][dk]["v"]
+        pprint(flatted)
+        tp = datetime.datetime.fromtimestamp(flatted["epoch"], ZoneInfo("UTC")).isoformat()
+        data_to_upload = {
+            'device_id': device_id,
+            'lat': flatted["lat"],
+            'lon': flatted["lon"],
+            'comment': '',
+            'button_position': flatted["button0"],
+            'time_received': data["meta"]["timestamp_received"],
+            'time_pressed': tp,
+        }
+        yield data_to_upload
+
+
 def main():
     init_script()
     parsed_data_topic = os.getenv("KAFKA_PARSED_DATA_TOPIC_NAME")
@@ -89,26 +110,7 @@ def main():
             logging.info("Got parsed data having no datalines: {}".format(pformat(data)))
             continue
         data = sample_data
-        pprint(data)
-        header = data["header"]
-        datalines = data["data"]
-        device_id = data["device"]["device_id"]
-        # measurement_name = data["device"]["device_metadata"]["parser_module"].split(".")[-1]
-        for dl in datalines:
-            flatted = {}  # simplify parsed data payload to one-level dict
-            for dk in dl["f"].keys():
-                flatted[header["columns"][dk]["name"]] = dl["f"][dk]["v"]
-            pprint(flatted)
-            tp = datetime.datetime.fromtimestamp(flatted["epoch"], ZoneInfo("UTC")).isoformat()
-            data_to_upload = {
-                'device_id': device_id,
-                'lat': flatted["lat"],
-                'lon': flatted["lon"],
-                'comment': '',
-                'button_position': flatted["button0"],
-                'time_received': data["meta"]["timestamp_received"],
-                'time_pressed': tp,
-            }
+        for data_to_upload in transform_data(data):
             pprint(data_to_upload)
             ok, res = upload_to_api(api_url, "api_token_should_be_here", data_to_upload)
             print(ok, res)
