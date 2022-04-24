@@ -1,0 +1,4 @@
+requests
+kafka-python
+msgpack
+sentry-sdk

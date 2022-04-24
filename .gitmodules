@@ -1,0 +1,3 @@
+[submodule "kafka2api/FVHIoT-python"]
+	path = kafka2api/FVHIoT-python
+	url = git@github.com:ForumViriumHelsinki/FVHIoT-python.git
