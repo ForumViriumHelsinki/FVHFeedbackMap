@@ -12,14 +12,14 @@ $gray-800: #343a40;
 $gray-900: #212529;
 $black:    #000;
 
-$blue:    #007bff;
+$blue:    #9FC5E8;
 $indigo:  #6610f2;
 $purple:  #6f42c1;
 $pink:    #e83e8c;
 $red:     #d70074;
 $orange:  #FF5000;
 $yellow:  #Ffd650;
-$green:   #28a745;
+$green:   #B6D7A8;
 $teal:    #009E92;
 $cyan:    #00a4cc;
 
@@ -58,7 +58,10 @@ $theme-colors: (
     "warning":    $warning,
     "danger":     $danger,
     "light":      $light,
-    "dark":       $dark
+    "dark":       $dark,
+    "green":      $green,
+    "yellow":     $yellow,
+    "blue":       $blue,
 );
 
 @import "../node_modules/bootstrap/scss/bootstrap";

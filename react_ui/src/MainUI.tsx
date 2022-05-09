@@ -75,7 +75,7 @@ class MainUI extends React.Component<{}, UIState> {
         <NavBar onIconClick={this.onNavIconClick}
                 icon={user ? "account_circle" : "login"}
                 iconText={user ? user.username : 'Kirjaudu'}>
-          <h5 className="m-2">FVH Palautekartta</h5>
+          <h4 className="m-2">FVH Palautekartta</h4>
         </NavBar>
         <div className="flex-grow-1 flex-shrink-1 overflow-auto">
           {props.buttons ? <TagButtons/> :

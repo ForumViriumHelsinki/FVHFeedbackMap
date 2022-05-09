@@ -17,13 +17,6 @@ type TagButtonsState = {
 
 const initialState: TagButtonsState = {};
 
-const btnClasses: {[c: string]: string} = {
-  'primary': 'primary',
-  'secondary': 'secondary',
-  'red': 'danger',
-  'green': 'success'
-};
-
 export default class TagButtons extends React.Component<TagButtonsProps, TagButtonsState> {
   state = initialState;
 
@@ -38,7 +31,7 @@ export default class TagButtons extends React.Component<TagButtonsProps, TagButt
     return !tags ? '' : <div className="p-2 d-flex flex-column flex" style={{height: '100%'}}>
       <Geolocator onLocation={([lon, lat]) => this.setState({currentPosition: {lat, lon}})}/>
       {tags.map(({tag, icon, color}) =>
-        <button className={`btn btn-${btnClasses[color]} mb-2 btn-block flex-grow-1`} onClick={() => this.newPoint(tag)}>
+        <button className={`btn btn-${color} mb-2 btn-block btn-lg flex-grow-1`} onClick={() => this.newPoint(tag)}>
           {icon && <><img src={icon} style={{maxHeight, maxWidth: 480}}/><br/></>}
           {tag}
         </button>)}

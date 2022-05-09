@@ -16,7 +16,7 @@ def upload_images_to(instance, filename):
 
 class Tag(models.Model):
     tag = models.CharField(max_length=64, primary_key=True, unique=True)
-    color = models.CharField(max_length=32, choices=[(c, c) for c in ['primary', 'secondary', 'green', 'red']], default='primary')
+    color = models.CharField(max_length=32, choices=[(c, c) for c in ['blue', 'yellow', 'green']], default='blue')
     icon = models.FileField(blank=True, null=True)
     published = models.DateTimeField(blank=True, null=True)
     button_position = models.IntegerField(blank=True, null=True)
