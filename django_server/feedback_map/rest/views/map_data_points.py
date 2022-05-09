@@ -14,7 +14,7 @@ from feedback_map.rest.serializers import DictMapDataPointSerializer, MapDataPoi
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = TagSerializer
-    queryset = models.Tag.objects.filter(published__isnull=False)
+    queryset = models.Tag.objects.filter(published__isnull=False).order_by('button_position')
 
 
 class MapDataPointsViewSet(viewsets.ModelViewSet):
