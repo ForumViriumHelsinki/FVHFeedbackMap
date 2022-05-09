@@ -108,7 +108,7 @@ class MapDataPointsTests(FVHAPITestCase):
         fields = {
             'lat': '60.16134701761975',
             'lon': '24.944593941327188',
-            'comment': 'Nice view',
+            'device_id': 'dev_1234',
             'button_position': 1
         }
         response = self.client.post(url, data=fields, format='json')
@@ -121,6 +121,7 @@ class MapDataPointsTests(FVHAPITestCase):
 
         # And it creates tags based on given button position:
         self.assertSetEqual(set(note.tags), set(['Smelly']))
+        self.assertEqual(note.device_id, 'dev_1234')
 
     def test_update_map_data_point_tags(self):
         # Given that a user is signed in

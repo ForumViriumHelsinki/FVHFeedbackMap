@@ -35,6 +35,8 @@ class MapDataPoint(TimestampedModel):
     comment = models.TextField(blank=True)
     tags = ArrayField(base_field=models.CharField(max_length=64), default=list, blank=True)
 
+    device_id = models.CharField(max_length=64, blank=True)
+
     created_by = models.ForeignKey(
         User, null=True, blank=True, on_delete=models.SET_NULL, related_name='created_notes')
     modified_by = models.ForeignKey(

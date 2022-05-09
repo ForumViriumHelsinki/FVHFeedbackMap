@@ -74,4 +74,4 @@ class MapDataPointSerializer(BaseMapDataPointSerializer):
     class Meta:
         model = models.MapDataPoint
         fields = ['id', 'comment', 'image', 'lat', 'lon', 'created_at', 'button_position',
-                  'is_processed', 'tags', 'created_by', 'comments']  #, 'upvotes', 'downvotes']
+                  'is_processed', 'tags', 'created_by', 'comments', 'device_id']  #, 'upvotes', 'downvotes']
