@@ -28,7 +28,10 @@ __pycache__
 /docker-compose.yml
 /react_ui/src/settings.json
 
+venv
+
 # kafka2api stuff:
 kafka2api.env
 kafka2api/ca.pem
+kafka2api/fvhiot
 
