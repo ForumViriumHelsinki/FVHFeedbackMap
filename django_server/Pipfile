@@ -6,7 +6,7 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
-django = ">=3.0"
+django = ">=3.2,<4.0"
 djangorestframework = ">=3.10"
 pyaml = ">=19.4"
 uritemplate = ">=3.0"
@@ -24,7 +24,7 @@ dj-inmemorystorage=">=2.0"
 gunicorn=">=20.0"
 sentry-sdk=">=0.14.1"
 elastic-apm = ">=5.5"
+pipfile = "*"
 
 [requires]
-python_version = "3.7"
-
+python_version = "3.11"
