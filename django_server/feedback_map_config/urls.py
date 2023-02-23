@@ -18,22 +18,28 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path, include
 from django.views.generic import TemplateView
+from feedback_map import rest, restv2
 from rest_framework.schemas import get_schema_view
-from feedback_map import rest
 
-
-schema_view = get_schema_view(
-    title="FVH Feedback Map API",
-    description="API for interacting with packages in the FVH Feedback Map application",
+schema_view_v1 = get_schema_view(
+    title="FVH Feedback Map API v1",
+    description="API v1 for interacting with packages in the FVH Feedback Map application",
     version="1.0.0", public=True)
 
+schema_view_v2 = get_schema_view(
+    title="FVH Feedback Map API v2",
+    description="API v2 for interacting with packages in the FVH Feedback Map application",
+    version="2.0.0", public=True)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('rest/', include(rest.urlpatterns)),
+    path('rest/', include(rest.urlpatterns)),  # TODO: redirect to /rest/v1/ first, then to /rest/v2/
+    path('rest/v1/', include(rest.urlpatterns)),
+    path('rest/v2/', include(restv2.urlpatterns)),
     path('rest-auth/', include('rest_auth.urls')),
     path('rest-auth/registration/', include('rest_auth.registration.urls')),
-    path('openapi/', schema_view, name='openapi-schema'),
+    path('openapi/', schema_view_v1, name='openapi-schema'),
+    path('openapiv2/', schema_view_v2, name='openapi-schema'),
     path('swagger-ui/', TemplateView.as_view(
         template_name='swagger-ui.html',
         extra_context={'schema_url': 'openapi-schema'}
