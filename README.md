@@ -1,10 +1,36 @@
 # FVH Feedback Map
 App for collecting and processing feedback related to geospatial points.
 
+## REST V2
+
+This is the new version of the REST API.
+It is currently in development and is not yet ready for production use.
+
+Original REST API is still available at `/rest/` and this version is mapped to `/rest/v2/`.
+
+### TODO REST V2
+
+- [x] Update all Python packages to latest versions
+- [x] Add .pre-commit-config.yaml
+- [x] Add ruff
+- [x] Change database backend to PostGIS
+- [ ] Add GeometryField to MapDataPoint model
+- [x] Add pagination
+- [ ] Add filtering
+  - [x] Add filtering by `created_at`
+  - [x] Add filtering by `updated_at`
+  - [ ] Add filtering by `bbox`
+  - [ ] Add filtering by `point` (distance)
+- [ ] Add ordering
+  - [x] Add ordering by `created_at`
+  - [x] Add ordering by `updated_at`
+- [ ] Add swagger for v2
+- [ ] Add tests for v2
+
 ## Installation
 
-**Prerequisites**: 
-* Python 3.7 with pip
+**Prerequisites**:
+* Python 3.10+ with pip
 * Node.js 13.3 with ./node_modules/.bin in the PATH
 * Postgres with a db available as configured in django_server/feedback_map_config/settings.py
 
