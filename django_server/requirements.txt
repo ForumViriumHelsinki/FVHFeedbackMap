@@ -35,11 +35,14 @@ django==3.2.18
     #   dj-inmemorystorage
     #   django-allauth
     #   django-cors-headers
+    #   django-filter
     #   django-rest-auth
     #   djangorestframework
 django-allauth==0.52.0
     # via -r requirements.in
 django-cors-headers==3.13.0
+    # via -r requirements.in
+django-filter==22.1
     # via -r requirements.in
 django-rest-auth==0.9.5
     # via -r requirements.in
