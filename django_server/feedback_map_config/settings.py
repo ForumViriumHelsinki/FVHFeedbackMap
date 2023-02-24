@@ -25,9 +25,7 @@ BASE_DIR = os.path.dirname(CONFIG_DIR)
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get(
-    "SECRET_KEY", "(*z-ann&51^6l361#ymu0y9tbdk=_g*=3cy8)p%vcizdc0%_qv"
-)
+SECRET_KEY = os.environ.get("SECRET_KEY", "(*z-ann&51^6l361#ymu0y9tbdk=_g*=3cy8)p%vcizdc0%_qv")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", False)
@@ -97,9 +95,7 @@ WSGI_APPLICATION = "feedback_map_config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get(
-            "SQL_ENGINE", "django.contrib.gis.db.backends.postgis"
-        ),
+        "ENGINE": os.environ.get("SQL_ENGINE", "django.contrib.gis.db.backends.postgis"),
         "NAME": os.environ.get("POSTGRES_DB", "feedback_map_dev"),
         "USER": os.environ.get("POSTGRES_USER", "postgres"),
         "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
@@ -202,9 +198,7 @@ DEFAULT_FROM_EMAIL = os.environ.get("EMAIL_HOST_USER", "webmaster@localhost")
 
 SENTRY_DSN = os.environ.get("SENTRY_DSN", None)
 if SENTRY_DSN:
-    sentry_sdk.init(
-        dsn=SENTRY_DSN, integrations=[DjangoIntegration()], send_default_pii=True
-    )
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()], send_default_pii=True)
 
 ELASTIC_APM = {
     "SERVICE_NAME": os.environ.get("ELASTIC_SERVICE", ""),
