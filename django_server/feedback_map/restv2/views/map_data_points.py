@@ -1,6 +1,9 @@
+import django_filters
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -26,6 +29,15 @@ class StandardResultsSetPagination(PageNumberPagination):
     max_page_size = 1000
 
 
+class MapDataPointsFilter(django_filters.FilterSet):
+    created_at = django_filters.IsoDateTimeFromToRangeFilter()
+    modified_at = django_filters.IsoDateTimeFromToRangeFilter()
+
+    class Meta:
+        model = models.MapDataPoint
+        fields = ["created_at", "modified_at"]
+
+
 class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = TagSerializer
@@ -36,10 +48,24 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class MapDataPointsViewSet(viewsets.ModelViewSet):
+    """
+    You can filter by created_at_before, created_at_after, modified_at_before, modified_at_after
+    using ISO-formatted time strings.
+
+    You can order by [-]created_at, [-]modified_at.
+
+    Example:
+    [?created_at_after=2023-01-01T00:00:00Z&ordering=created_at](?created_at_after=2023-01-01T00:00:00Z&ordering=created_at)
+    """
+
     permission_classes = [permissions.AllowAny]
     serializer_class = MapDataPointSerializer
     pagination_class = StandardResultsSetPagination
-    queryset = models.MapDataPoint.objects.filter(visible=True).order_by("-created_at")
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = MapDataPointsFilter
+    ordering_fields = ["created_at", "modified_at"]
+    ordering = ["-created_at"]
+    queryset = models.MapDataPoint.objects.filter(visible=True)
 
     # Use simple serializer for list to improve performance:
     serializer_classes = {"list": DictMapDataPointSerializer}
