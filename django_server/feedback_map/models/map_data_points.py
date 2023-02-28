@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.contrib.gis.db import models
-
+from django.contrib.gis.geos import Point
 
 from . import base
 from .base import TimestampedModel
@@ -28,56 +28,41 @@ class Tag(models.Model):
 
     def save(self, *args, **kwargs):
         if self.button_position:
-            Tag.objects.filter(
-                button_position=self.button_position, published__isnull=False
-            ).exclude(tag=self.tag).update(published=None)
+            Tag.objects.filter(button_position=self.button_position, published__isnull=False).exclude(
+                tag=self.tag
+            ).update(published=None)
         return super().save(*args, **kwargs)
 
 
 class MapDataPoint(TimestampedModel):
     lat = models.DecimalField(max_digits=11, decimal_places=8)
     lon = models.DecimalField(max_digits=11, decimal_places=8)
+    # Note https://docs.djangoproject.com/en/4.1/ref/contrib/gis/model-api/#geography-type
+    point = models.PointField(srid=4326, null=True, blank=True, geography=True)
     image = models.ImageField(null=True, blank=True, upload_to=upload_images_to)
     comment = models.TextField(blank=True)
-    tags = ArrayField(
-        base_field=models.CharField(max_length=64), default=list, blank=True
-    )
-
+    tags = ArrayField(base_field=models.CharField(max_length=64), default=list, blank=True)
     device_id = models.CharField(max_length=64, blank=True)
-
-    created_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="created_notes",
-    )
+    created_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL, related_name="created_notes")
     modified_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="modified_notes",
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="modified_notes"
     )
-
     processed_by = models.ForeignKey(
-        User,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="processed_notes",
+        User, null=True, blank=True, on_delete=models.SET_NULL, related_name="processed_notes"
     )
-
     visible = models.BooleanField(default=True)
     hidden_reason = models.TextField(
-        blank=True,
-        help_text="If reviewer decides to hide the note, document reason here.",
+        blank=True, help_text="If reviewer decides to hide the note, document reason here."
     )
 
     def __str__(self):
         return self.comment or super().__str__()
 
     def save(self, *args, **kwargs):
+        # Use lat and lon to create a point
+        if self.lat and self.lon:
+            self.point = Point(self.lon, self.lat, srid=4326)
+
         if not self.image:
             return super().save(*args, **kwargs)
 
@@ -120,30 +105,20 @@ class MapDataPoint(TimestampedModel):
         from feedback_map.rest.permissions import REVIEWER_GROUP
 
         return User.objects.filter(
-            models.Q(
-                id__in=[self.created_by_id, self.modified_by_id, self.processed_by_id]
-            )
+            models.Q(id__in=[self.created_by_id, self.modified_by_id, self.processed_by_id])
             | models.Q(map_data_point_comments__map_data_point=self)
             | models.Q(groups__name=REVIEWER_GROUP)
         ).distinct()
 
 
 class MapDataPointUpvote(base.Model):
-    user = models.ForeignKey(
-        User, related_name="map_data_point_upvotes", on_delete=models.CASCADE
-    )
-    map_data_point = models.ForeignKey(
-        MapDataPoint, related_name="upvotes", on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(User, related_name="map_data_point_upvotes", on_delete=models.CASCADE)
+    map_data_point = models.ForeignKey(MapDataPoint, related_name="upvotes", on_delete=models.CASCADE)
 
 
 class MapDataPointDownvote(base.Model):
-    user = models.ForeignKey(
-        User, related_name="map_data_point_downvotes", on_delete=models.CASCADE
-    )
-    map_data_point = models.ForeignKey(
-        MapDataPoint, related_name="downvotes", on_delete=models.CASCADE
-    )
+    user = models.ForeignKey(User, related_name="map_data_point_downvotes", on_delete=models.CASCADE)
+    map_data_point = models.ForeignKey(MapDataPoint, related_name="downvotes", on_delete=models.CASCADE)
 
 
 class MapDataPointComment(base.Model):
@@ -153,9 +128,7 @@ class MapDataPointComment(base.Model):
         on_delete=models.CASCADE,
         null=True,
     )
-    map_data_point = models.ForeignKey(
-        MapDataPoint, related_name="comments", on_delete=models.CASCADE
-    )
+    map_data_point = models.ForeignKey(MapDataPoint, related_name="comments", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     comment = models.TextField()
 
@@ -176,10 +149,6 @@ class MapDataPointComment(base.Model):
 
 
 class MapDataPointCommentNotification(base.Model):
-    comment = models.ForeignKey(
-        MapDataPointComment, related_name="notifications", on_delete=models.CASCADE
-    )
-    user = models.ForeignKey(
-        User, related_name="notifications", on_delete=models.CASCADE
-    )
+    comment = models.ForeignKey(MapDataPointComment, related_name="notifications", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name="notifications", on_delete=models.CASCADE)
     seen = models.DateTimeField(null=True, blank=True, db_index=True)

@@ -1,12 +1,16 @@
 import django_filters
+from django.contrib.gis.geos import Point, Polygon
+from django.contrib.gis.measure import Distance
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from django.contrib.gis.db.models.functions import GeometryDistance
 
 from feedback_map import models
 from feedback_map.rest.permissions import (
@@ -21,6 +25,21 @@ from feedback_map.rest.serializers import (
     MapDataPointCommentNotificationSerializer,
     TagSerializer,
 )
+
+
+def create_polygon_or_fail(bbox: str) -> Polygon:
+    """
+    Create a Polygon from a bbox string. If the bbox string is invalid, raise ValidationError.
+    """
+    try:
+        bbox = [float(x) for x in bbox.split(",")]
+        if len(bbox) != 4:
+            raise ValueError("Bbox must have 4 values (min_lon, min_lat, max_lon, max_lat)")
+        if bbox[0] >= bbox[2] or bbox[1] >= bbox[3]:
+            raise ValueError("Bbox must be in format (min_lon, min_lat, max_lon, max_lat)")
+        return Polygon.from_bbox(bbox)
+    except Exception as e:
+        raise ValidationError("Invalid bbox: {}".format(e))
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -42,20 +61,31 @@ class TagsViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [permissions.AllowAny]
     serializer_class = TagSerializer
     pagination_class = StandardResultsSetPagination
-    queryset = models.Tag.objects.filter(published__isnull=False).order_by(
-        "button_position"
-    )
+    queryset = models.Tag.objects.filter(published__isnull=False).order_by("button_position")
 
 
 class MapDataPointsViewSet(viewsets.ModelViewSet):
     """
-    You can filter by created_at_before, created_at_after, modified_at_before, modified_at_after
-    using ISO-formatted time strings.
+    You can filter by:
 
-    You can order by [-]created_at, [-]modified_at.
+    * `created_at_before`, `created_at_after`, `modified_at_before`, `modified_at_after`
+       using ISO-formatted time strings.
+    * bbox = left,bottom,right,top = min Longitude, min Latitude, max Longitude, max Latitude
+    * coordinates+radius = lon,lat,radius
 
-    Example:
-    [?created_at_after=2023-01-01T00:00:00Z&ordering=created_at](?created_at_after=2023-01-01T00:00:00Z&ordering=created_at)
+    You can order by
+
+    * `[-]created_at`
+    * `[-]modified_at`
+
+    You can request max 1000 items per page using `page_size=1000` query parameter.
+
+    Examples:
+
+    * [?created_at_after=2023-01-01T00:00:00Z](?created_at_after=2023-01-01T00:00:00Z)
+    * [?bbox=24.95,60.165,24.96,60.175](?bbox=24.95,60.165,24.96,60.175)
+    * [?coordinates=60.166,24.951,1000](?coordinates=60.166,24.951,1000)
+    * [?ordering=created_at](?ordering=created_at)
     """
 
     permission_classes = [permissions.AllowAny]
@@ -72,6 +102,17 @@ class MapDataPointsViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = super().get_queryset()
+        bbox = self.request.query_params.get("bbox")
+        if bbox:
+            geom = create_polygon_or_fail(bbox)
+            queryset = queryset.filter(point__within=geom)
+        coordinates = self.request.query_params.get("coordinates")
+        if coordinates:
+            lat, lon, radius = [float(x) for x in coordinates.split(",")]
+            point = Point(lon, lat)
+            queryset = queryset.filter(point__distance_lt=(point, Distance(m=radius)))
+            # Order queryset by distance
+            queryset = queryset.annotate(distance=GeometryDistance("point", point)).order_by("distance")
         if self.action == "list":
             # Fetch list as dicts rather than object instances for a bit more speed:
             return queryset.values()
