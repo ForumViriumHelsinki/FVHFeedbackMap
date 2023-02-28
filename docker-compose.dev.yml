@@ -14,7 +14,7 @@ services:
       - db
 
   db:
-    image: postgres:12.1
+    image: postgis/postgis
     volumes:
       - ./postgres_data:/var/lib/postgresql/data/
     env_file:
@@ -23,11 +23,11 @@ services:
       - 5432:5432
 
   react:
-      build: ./react_ui
-      command: yarn start
-      stdin_open: true
-      ports:
-        - 3000:3000
-      volumes:
-        - ./react_ui/src/:/app/src
-        - ./react_ui/public/:/app/public
+    build: ./react_ui
+    command: yarn start
+    stdin_open: true
+    ports:
+      - 3000:3000
+    volumes:
+      - ./react_ui/src/:/app/src
+      - ./react_ui/public/:/app/public
