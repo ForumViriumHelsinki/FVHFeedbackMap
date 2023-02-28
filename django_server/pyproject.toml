@@ -1,0 +1,41 @@
+[tool.black]
+line-length = 120
+target-version = ['py39', 'py310']
+exclude = '''
+(
+  migrations         # migrations are automatically generated and should we excluded
+  |
+  /(
+      \.eggs         # exclude a few common directories in the
+    | \.git          # root of the project
+    | \.tox
+    | \.venv
+    | venv
+    | _build
+    | buck-out
+    | build
+    | dist
+  )/
+  | foo.py           # also separately exclude a file named foo.py in
+                     # the root of the project
+)
+'''
+# force-exclude is for pre-commit
+force-exclude = '''
+(
+   migrations                     # files in this dir are ignored
+)
+'''
+
+[tool.ruff]
+line-length = 120
+
+# Enable Pyflakes `E` and `F` codes by default.
+select = ["E", "F"]
+ignore = []
+
+[tool.autoflake]
+in-place = true
+remove-all-unused-imports =true
+remove-unused-variables = true
+exclude = ["migrations", "venv"]
