@@ -8,6 +8,7 @@ django-cors-headers>=3.2
 django-rest-auth>=0.9
 django-allauth>=0.41
 jsonschema>=3.2
+markdown
 psycopg2-binary>2.8
 flake8>=3.7
 coverage>=5.0
