@@ -1,4 +1,5 @@
 import django_filters
+from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import Distance
 from django.utils import timezone
@@ -10,7 +11,6 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListAPIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from django.contrib.gis.db.models.functions import GeometryDistance
 
 from feedback_map import models
 from feedback_map.rest.permissions import (
@@ -78,12 +78,15 @@ class MapDataPointsViewSet(viewsets.ModelViewSet):
     * `[-]created_at`
     * `[-]modified_at`
 
+    Note that there is not default ordering, but distance ordering is used if you use coordinates+radius filter.
+
     You can request max 1000 items per page using `page_size=1000` query parameter.
 
     Examples:
 
-    * [?created_at_after=2023-01-01T00:00:00Z](?created_at_after=2023-01-01T00:00:00Z)
-    * [?bbox=24.95,60.165,24.96,60.175](?bbox=24.95,60.165,24.96,60.175)
+    * [?created_at_after=2023-01-01T00:00:00Z&ordering=created_at\
+      ](?created_at_after=2023-01-01T00:00:00Z&ordering=created_at)
+    * [?bbox=24.95,60.165,24.96,60.175&ordering=-created_at](?bbox=24.95,60.165,24.96,60.175&ordering=-created_at)
     * [?coordinates=60.166,24.951,1000](?coordinates=60.166,24.951,1000)
     * [?ordering=created_at](?ordering=created_at)
     """
@@ -94,25 +97,28 @@ class MapDataPointsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = MapDataPointsFilter
     ordering_fields = ["created_at", "modified_at"]
-    ordering = ["-created_at"]
+    # ordering = ["-created_at"]  # If default ordering is set, it is not possible to use ordering by distance
     queryset = models.MapDataPoint.objects.filter(visible=True)
 
     # Use simple serializer for list to improve performance:
     serializer_classes = {"list": DictMapDataPointSerializer}
 
     def get_queryset(self):
+        """
+        GIS filtering - note usage of geometry and geography fields.
+        """
         queryset = super().get_queryset()
         bbox = self.request.query_params.get("bbox")
         if bbox:
             geom = create_polygon_or_fail(bbox)
-            queryset = queryset.filter(point__within=geom)
+            queryset = queryset.filter(geom__within=geom)
         coordinates = self.request.query_params.get("coordinates")
         if coordinates:
             lat, lon, radius = [float(x) for x in coordinates.split(",")]
             point = Point(lon, lat)
-            queryset = queryset.filter(point__distance_lt=(point, Distance(m=radius)))
+            queryset = queryset.filter(geog__distance_lt=(point, Distance(m=radius)))
             # Order queryset by distance
-            queryset = queryset.annotate(distance=GeometryDistance("point", point)).order_by("distance")
+            queryset = queryset.annotate(distance=GeometryDistance("geog", point)).order_by("distance")
         if self.action == "list":
             # Fetch list as dicts rather than object instances for a bit more speed:
             return queryset.values()

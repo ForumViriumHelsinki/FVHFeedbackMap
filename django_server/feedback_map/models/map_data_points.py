@@ -38,7 +38,8 @@ class MapDataPoint(TimestampedModel):
     lat = models.DecimalField(max_digits=11, decimal_places=8)
     lon = models.DecimalField(max_digits=11, decimal_places=8)
     # Note https://docs.djangoproject.com/en/4.1/ref/contrib/gis/model-api/#geography-type
-    point = models.PointField(srid=4326, null=True, blank=True, geography=True)
+    geog = models.PointField(srid=4326, null=True, blank=True, geography=True)
+    geom = models.PointField(srid=4326, null=True, blank=True, geography=False)
     image = models.ImageField(null=True, blank=True, upload_to=upload_images_to)
     comment = models.TextField(blank=True)
     tags = ArrayField(base_field=models.CharField(max_length=64), default=list, blank=True)
@@ -61,7 +62,8 @@ class MapDataPoint(TimestampedModel):
     def save(self, *args, **kwargs):
         # Use lat and lon to create a point
         if self.lat and self.lon:
-            self.point = Point(self.lon, self.lat, srid=4326)
+            self.geom = Point(self.lon, self.lat, srid=4326)
+            self.geog = Point(self.lon, self.lat, srid=4326)
 
         if not self.image:
             return super().save(*args, **kwargs)
