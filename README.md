@@ -14,14 +14,14 @@ Original REST API is still available at `/rest/` and this version is mapped to `
 - [x] Add .pre-commit-config.yaml
 - [x] Add ruff
 - [x] Change database backend to PostGIS
-- [ ] Add GeometryField to MapDataPoint model
+- [x] Add GeometryField to MapDataPoint model
 - [x] Add pagination
-- [ ] Add filtering
+- [x] Add filtering
   - [x] Add filtering by `created_at`
   - [x] Add filtering by `updated_at`
-  - [ ] Add filtering by `bbox`
-  - [ ] Add filtering by `point` (distance)
-- [ ] Add ordering
+  - [x] Add filtering by `bbox`
+  - [x] Add filtering by `point` (distance)
+- [x] Add ordering
   - [x] Add ordering by `created_at`
   - [x] Add ordering by `updated_at`
 - [ ] Add swagger for v2
