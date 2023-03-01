@@ -61,8 +61,8 @@ export default class NotificationsButton extends React.Component<NotificationsBu
   loadNotifications = () => {
     sessionRequest(notificationsUrl).then((response: any) => {
       if (response.status < 300)
-        response.json().then((notifications: Notification[]) => {
-          this.setState({notifications});
+        response.json().then((response: any) => {
+          this.setState({notifications: response.results});
         });
     })
   };

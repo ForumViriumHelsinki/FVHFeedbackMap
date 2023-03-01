@@ -30,4 +30,5 @@ export const filterNotes = (filters: any, notes: MapDataPoint[]) => {
     });
 };
 
-export const getTags = sessionRequest(tagsUrl).then(r => r.json());
+export const getTags =
+  sessionRequest(tagsUrl).then(r => r.json()).then(response => response.results);
