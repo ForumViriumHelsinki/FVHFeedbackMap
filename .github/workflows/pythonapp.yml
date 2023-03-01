@@ -9,7 +9,7 @@ jobs:
     
     services:
       postgres:
-        image: postgres:12
+        image: postgis/postgis
         env:
           POSTGRES_DB: feedback_map_dev
           POSTGRES_USER: postgres
