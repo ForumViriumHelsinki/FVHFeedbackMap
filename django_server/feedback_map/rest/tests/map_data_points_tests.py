@@ -195,7 +195,7 @@ class MapDataPointsTests(FVHAPITestCase):
         url = reverse('mapdatapoint-list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, [])
+        self.assertEqual(response.data['results'], [])
 
     def test_vote_on_map_data_point(self):
         # Given that a user is signed in

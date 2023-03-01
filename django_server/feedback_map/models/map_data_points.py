@@ -62,8 +62,8 @@ class MapDataPoint(TimestampedModel):
     def save(self, *args, **kwargs):
         # Use lat and lon to create a point
         if self.lat and self.lon:
-            self.geom = Point(self.lon, self.lat, srid=4326)
-            self.geog = Point(self.lon, self.lat, srid=4326)
+            self.geom = Point(float(self.lon), float(self.lat), srid=4326)
+            self.geog = Point(float(self.lon), float(self.lat), srid=4326)
 
         if not self.image:
             return super().save(*args, **kwargs)
