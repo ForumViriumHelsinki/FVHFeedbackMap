@@ -121,11 +121,8 @@ export default class Map extends React.Component<MapProps, MapState> {
 
     if (background == 'osm')
       // @ts-ignore
-      this.bgLayer = L.mapboxGL({
-        style: '/hsl-map-style.json',
-        accessToken: settings.MapBox.accessToken,
-        attribution: showAttribution ? attribution : '',
-        maxZoom: 21,
+      this.bgLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       }).addTo(this.leafletMap);
     else
       // @ts-ignore
