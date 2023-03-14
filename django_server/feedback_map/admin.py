@@ -47,4 +47,6 @@ class MapDataPointCommentAdmin(admin.ModelAdmin):
 
 @admin.register(models.Tag)
 class TagAdmin(admin.ModelAdmin):
-    pass
+    list_display = ['tag', 'color', 'published', 'button_position']
+    list_editable = ['color', 'published', 'button_position']
+    list_filter = ['published']

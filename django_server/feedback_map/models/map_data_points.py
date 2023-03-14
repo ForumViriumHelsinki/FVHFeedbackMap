@@ -19,7 +19,7 @@ class Tag(models.Model):
     tag = models.CharField(max_length=64, primary_key=True, unique=True)
     color = models.CharField(
         max_length=32,
-        choices=[(c, c) for c in ["blue", "yellow", "green"]],
+        choices=[(c, c) for c in ["blue", "yellow", "green", "white"]],
         default="blue",
     )
     icon = models.FileField(blank=True, null=True)

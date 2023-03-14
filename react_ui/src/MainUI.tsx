@@ -72,11 +72,13 @@ class MainUI extends React.Component<{}, UIState> {
 
     const MainUI = (props: {selectedNoteId?: number, newNote?: boolean, osmFeatures?: number[], buttons?: boolean}) =>
       <div style={{height: window.innerHeight}} className="flex-column d-flex" id="MainUI">
-        <NavBar onIconClick={this.onNavIconClick}
-                icon={user ? "account_circle" : "login"}
-                iconText={user ? user.username : 'Kirjaudu'}>
-          <h4 className="m-2">FVH Palautekartta</h4>
-        </NavBar>
+        {!props.buttons &&
+          <NavBar onIconClick={this.onNavIconClick}
+                  icon={user ? "account_circle" : "login"}
+                  iconText={user ? user.username : 'Kirjaudu'}>
+            <h4 className="m-2">FVH Palautekartta</h4>
+          </NavBar>
+        }
         <div className="flex-grow-1 flex-shrink-1 overflow-auto">
           {props.buttons ? <TagButtons/> :
             <MapDataPointsContextProvider>
