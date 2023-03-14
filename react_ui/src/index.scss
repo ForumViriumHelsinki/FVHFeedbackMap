@@ -68,6 +68,10 @@ $theme-colors: (
 
 
 // Misc style corrections for our use cases:
+body {
+  background-color: #f7f9fc;
+}
+
 a, button {
   background: none;
   border: none;
@@ -181,6 +185,10 @@ form.compact {
 
 .btn-discrete:hover {
   opacity: 1;
+}
+
+.btn-white {
+  background-color: white;
 }
 
 div.leaflet-top, div.leaflet-bottom {
