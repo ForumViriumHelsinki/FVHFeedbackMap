@@ -2,6 +2,7 @@ version: '3.7'
 
 services:
   web:
+    platform: linux/amd64
     build: ./django_server
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
