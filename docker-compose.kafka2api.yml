@@ -20,3 +20,23 @@ services:
         max-file: "10"
         max-size: "20m"
     container_name: kafka2api
+
+  new_feedback_from_kafka_to_api:
+    build:
+      context: ./kafka2api
+      target: development
+    volumes:
+      - ./kafka2api:/home/app
+      - ./kafka2api/FVHIoT-python/fvhiot:/home/app/fvhiot
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: python new_feedback_from_kafka_to_api.py
+    env_file:
+      - kafka2api.env
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: "20m"
+    container_name: new_feedback_from_kafka_to_api
