@@ -27,6 +27,7 @@ gunicorn=">=20.0"
 sentry-sdk=">=0.14.1"
 elastic-apm = ">=5.5"
 pipfile = "*"
+kafka-python = "*"
 
 [requires]
 python_version = "3.11"

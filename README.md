@@ -9,7 +9,7 @@ App for collecting and processing feedback related to geospatial points.
 
 In project root:
 
-* ```sh configure_dev.sh``` or ```sh configure_prod.sh``` to ensure the correct configurations are in use for the 
+* ```sh configure_dev.sh``` or ```sh configure_prod.sh``` to ensure the correct configurations are in use for the
   intended environment
 * For prod setup, ```cp .env.prod.sample .env.prod``` and fill in the correct settings for your prod env
 * ```docker-compose up -d``` should then launch the needed docker containers for the env
@@ -38,6 +38,13 @@ python manage.py createsuperuser
 <Configure user to your satisfaction>
 python manage.py runserver
 <Verify that you can login at 127.0.0.1:8000/admin/ >
+```
+
+If you are sending to and receiving messages from Kafka,
+you will need ca.pem in both of these directories:
+```
+kafka2api/ca.pem
+django_server/ca.pem
 ```
 
 In react_ui:
