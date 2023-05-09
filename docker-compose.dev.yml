@@ -7,6 +7,7 @@ services:
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
       - ./django_server:/app
+      - ./media:/app/media
       - ./kafka2api/ca.pem:/app/ca.pem:ro
     ports:
       - "8000:8000"
