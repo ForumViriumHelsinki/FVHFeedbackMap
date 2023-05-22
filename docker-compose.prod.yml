@@ -7,6 +7,7 @@ services:
     network_mode: host
     env_file:
       - ./.env.prod
+      - ./kafka2api.env
     volumes:
       - ./django_server:/app
     restart: always
