@@ -11,6 +11,8 @@ In project root:
 
 * ```sh configure_dev.sh``` or ```sh configure_prod.sh``` to ensure the correct configurations are in use for the
   intended environment
+* Create empty file `kafka2api.env` if you are not planning to use Kafka functionality 
+  or copy `kafka2api.env.sample` --> `kafka2api.env` and correct the values
 * For prod setup, ```cp .env.prod.sample .env.prod``` and fill in the correct settings for your prod env
 * ```docker-compose up -d``` should then launch the needed docker containers for the env
 * To get started with development, ```docker exec -it fvhfeedbackmap-web-1 python manage.py createsuperuser``` should
