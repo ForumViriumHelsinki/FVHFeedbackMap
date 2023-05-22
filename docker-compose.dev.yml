@@ -9,6 +9,7 @@ services:
       - ./django_server:/app
       - ./media:/app/media
       - ./kafka2api/ca.pem:/app/ca.pem:ro
+      - ./kafka2api/FVHIoT-python/fvhiot:/app/fvhiot
     ports:
       - "8000:8000"
     env_file:

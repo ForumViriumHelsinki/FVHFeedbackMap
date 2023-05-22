@@ -10,7 +10,9 @@ services:
       - ./kafka2api.env
     volumes:
       - ./django_server:/app
-    restart: always
+      - ./kafka2api/ca.pem:/app/ca.pem:ro
+      - ./kafka2api/FVHIoT-python/fvhiot:/app/fvhiot
+    restart: unless-stopped
 
   react:
     build: ./react_ui

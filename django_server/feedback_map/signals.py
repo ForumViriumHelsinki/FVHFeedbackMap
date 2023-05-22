@@ -23,11 +23,7 @@ if os.getenv("KAFKA_BOOTSTRAP_SERVERS"):
             sasl_plain_username=os.getenv("KAFKA_SASL_USERNAME"),
             sasl_plain_password=os.getenv("KAFKA_SASL_PASSWORD"),
         )
-        logging.info(
-            "Kafka producer successfully connected to {}.".format(
-                os.getenv("KAFKA_BOOTSTRAP_SERVERS")
-            )
-        )
+        logging.info("Kafka producer successfully connected to {}.".format(os.getenv("KAFKA_BOOTSTRAP_SERVERS")))
     except Exception as e:
         logging.critical(f"Kafka producer failed to connect. {e}")
         raise
@@ -47,9 +43,7 @@ def send_to_kafka(sender, instance, created, **kwargs):
             payload[key] = data["fields"][key]
         # convert dict to bytes
         pl_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
-        logging.info(
-            f"Sending {pl_bytes} to Kafka topic {os.getenv('KAFKA_FORWARD_TOPIC_NAME')}"
-        )
+        logging.info(f"Sending {pl_bytes} to Kafka topic {os.getenv('KAFKA_FORWARD_TOPIC_NAME')}")
         producer.send(os.getenv("KAFKA_FORWARD_TOPIC_NAME"), pl_bytes)
         # flush the producer to ensure the message is sent
         producer.flush()

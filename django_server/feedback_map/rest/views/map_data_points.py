@@ -1,7 +1,13 @@
+import os
+
 import django_filters
+
+from feedback_map.models import Tag
+from fvhiot.parsers.fvhgeneric import parse_fvhgeneric
 from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import Distance
+from rest_framework.request import Request
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, permissions
@@ -9,6 +15,8 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
+
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 
@@ -254,3 +262,24 @@ class MapDataPointsGeoJSON(ListAPIView):
                 ],
             }
         )
+
+
+class IotDeviceView(APIView):
+    """
+    Get POST data payload and save the data into a file.
+    Return plain OK response.
+    """
+
+    def post(self, request: Request):
+        # Get token from header and validate it against env variable
+        token = request.headers.get("Token")
+        if token is None or token != os.getenv("IOTDEVICE_TOKEN"):
+            return Response("Invalid token", status=401)
+        data = request.data
+        device_id = data.get("device_id")
+        payload = data.get("payload")
+        parsed = parse_fvhgeneric(payload)
+        tag = Tag.objects.get(button_position=parsed["button0"])
+        mdp = models.MapDataPoint(lat=parsed["lat"], lon=parsed["lon"], tags=[tag.tag], device_id=device_id)
+        mdp.save()
+        return Response("Created", status=201)
