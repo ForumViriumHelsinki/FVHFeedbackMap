@@ -29,6 +29,7 @@ force-exclude = '''
 
 [tool.ruff]
 line-length = 120
+ignore-init-module-imports = true
 
 # Enable Pyflakes `E` and `F` codes by default.
 select = ["E", "F"]
