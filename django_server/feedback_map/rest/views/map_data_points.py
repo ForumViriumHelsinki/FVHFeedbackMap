@@ -3,7 +3,6 @@ import os
 import django_filters
 
 from feedback_map.models import Tag
-from fvhiot.parsers.fvhgeneric import parse_fvhgeneric
 from django.contrib.gis.db.models.functions import GeometryDistance
 from django.contrib.gis.geos import Point, Polygon
 from django.contrib.gis.measure import Distance
@@ -267,6 +266,11 @@ class MapDataPointsGeoJSON(ListAPIView):
 class IotDeviceView(APIView):
     """
     Get POST data payload and save the data into a file.
+    Example payload:
+
+    {"deveui": "a4ea4ea4ea4e0000", "longitude": "435639", "latitude": "5085420",
+     "time": "1684768337", "button": "4", "buttons": "8" }
+
     Return plain OK response.
     """
 
@@ -276,10 +280,14 @@ class IotDeviceView(APIView):
         if token is None or token != os.getenv("IOTDEVICE_TOKEN"):
             return Response("Invalid token", status=401)
         data = request.data
-        device_id = data.get("device_id")
-        payload = data.get("payload")
-        parsed = parse_fvhgeneric(payload)
-        tag = Tag.objects.get(button_position=parsed["button0"])
-        mdp = models.MapDataPoint(lat=parsed["lat"], lon=parsed["lon"], tags=[tag.tag], device_id=device_id)
+
+        def convert_deg(i):
+            return i / 10**7 * 256.0
+
+        device_id = data.get("deveui")
+        lat = convert_deg(int(data.get("latitude")))
+        lon = convert_deg(int(data.get("longitude")))
+        tag = Tag.objects.get(button_position=int(data.get("button")))
+        mdp = models.MapDataPoint(lat=lat, lon=lon, tags=[tag.tag], device_id=device_id)
         mdp.save()
         return Response("Created", status=201)
