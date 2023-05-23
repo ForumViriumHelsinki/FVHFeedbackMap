@@ -1,3 +1,4 @@
+import logging
 import os
 
 import django_filters
@@ -280,6 +281,7 @@ class IotDeviceView(APIView):
         if token is None or token != os.getenv("IOTDEVICE_TOKEN"):
             return Response("Invalid token", status=401)
         data = request.data
+        logging.info(f"Received IoT Device data: {data}")
 
         def convert_deg(i):
             return i / 10**7 * 256.0
@@ -287,7 +289,15 @@ class IotDeviceView(APIView):
         device_id = data.get("deveui")
         lat = convert_deg(int(data.get("latitude")))
         lon = convert_deg(int(data.get("longitude")))
-        tag = Tag.objects.get(button_position=int(data.get("button")))
-        mdp = models.MapDataPoint(lat=lat, lon=lon, tags=[tag.tag], device_id=device_id)
-        mdp.save()
-        return Response("Created", status=201)
+        button = int(data.get("button"))
+        if button > 0:
+            tags = [t.tag for t in Tag.objects.filter(button_position=button)]
+            if tags:
+                msg, status = "Created", 201
+            else:
+                msg, status = f"Invalid button: {button}", 200
+            mdp = models.MapDataPoint(lat=lat, lon=lon, tags=tags, device_id=device_id)
+            mdp.save()
+        else:
+            msg, status = "Startup message accepted", 200
+        return Response(msg, status=status)
