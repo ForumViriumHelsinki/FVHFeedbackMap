@@ -32,7 +32,7 @@ export default class MapDataPointsContextProvider extends React.Component<MapDat
   }
 
   loadMapDataPoints = () => {
-    sessionRequest(mapDataPointsUrl + '?page_size=1000').then((response: any) => {
+    sessionRequest(mapDataPointsUrl + '?page_size=1000&ordering=-created_at').then((response: any) => {
       if (response.status < 300)
         response.json().then((response: any) => {
           this.setState({mapDataPoints: response.results});
