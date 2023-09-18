@@ -30,7 +30,7 @@ force-exclude = '''
 [tool.ruff]
 line-length = 120
 ignore-init-module-imports = true
-
+extend-exclude = ["migrations"]
 # Enable Pyflakes `E` and `F` codes by default.
 select = ["E", "F"]
 ignore = []

@@ -34,9 +34,20 @@ class Tag(models.Model):
         return super().save(*args, **kwargs)
 
 
+STATUS_CHOICES = [
+    ("NEW", "New"),
+    ("OPEN", "Open"),
+    ("IN_PROGRESS", "In progress"),
+    ("CLOSED", "Closed"),
+    ("OBSOLETE", "Obsolete"),
+    ("REOPENED", "Reopened"),
+]
+
+
 class MapDataPoint(TimestampedModel):
     lat = models.DecimalField(max_digits=11, decimal_places=8)
     lon = models.DecimalField(max_digits=11, decimal_places=8)
+    status = models.CharField(max_length=32, choices=STATUS_CHOICES, default="NEW")
     # Note https://docs.djangoproject.com/en/4.1/ref/contrib/gis/model-api/#geography-type
     geog = models.PointField(srid=4326, null=True, blank=True, geography=True)
     geom = models.PointField(srid=4326, null=True, blank=True, geography=False)
