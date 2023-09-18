@@ -33,19 +33,23 @@ else:
 
 @receiver(post_save, sender=MapDataPoint)
 def send_to_kafka(sender, instance, created, **kwargs):
+    data = json.loads(serializers.serialize("json", [instance]))[0]
+    # create a dict with the fields we want to send to Kafka
+    keys = ["created_at", "modified_at", "image", "comment", "device_id"]
+    payload = {"id": instance.id}
+    for key in keys:
+        payload[key] = data["fields"][key]
+    for key in ["lat", "lon"]:
+        payload[key] = float(data["fields"][key])
+    payload["tags"] = json.loads(data["fields"]["tags"])
+    # convert dict to bytes
+    pl_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
     if producer is not None and os.getenv("KAFKA_FORWARD_TOPIC_NAME") and created:
         # serialize instance to json using Django's serializer, this will take care of datetime and other types
-        data = json.loads(serializers.serialize("json", [instance]))[0]
-        # create a dict with the fields we want to send to Kafka
-        keys = ["created_at", "lat", "lon", "image", "comment", "tags", "device_id"]
-        payload = {"id": instance.id}
-        for key in keys:
-            payload[key] = data["fields"][key]
-        # convert dict to bytes
-        pl_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
         logging.info(f"Sending {pl_bytes} to Kafka topic {os.getenv('KAFKA_FORWARD_TOPIC_NAME')}")
         producer.send(os.getenv("KAFKA_FORWARD_TOPIC_NAME"), pl_bytes)
         # flush the producer to ensure the message is sent
         producer.flush()
     else:
+        logging.info(f"Would send {pl_bytes} to Kafka, but it's not configured.")
         pass  # new instance was not created, so we don't need to send it to Kafka
