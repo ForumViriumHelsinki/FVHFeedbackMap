@@ -1,6 +1,7 @@
 version: '3.7'
 
 services:
+
   web:
     build: ./django_server
     command: gunicorn feedback_map_config.wsgi:application --bind 0.0.0.0:8000 --access-logfile access.log --error-logfile error.log --capture-output --workers 4
@@ -13,6 +14,11 @@ services:
       - ./kafka2api/ca.pem:/app/ca.pem:ro
       - ./kafka2api/FVHIoT-python/fvhiot:/app/fvhiot
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-file: "10"
+        max-size: "20m"
 
   react:
     build: ./react_ui
@@ -21,3 +27,4 @@ services:
       - ./react_ui/build:/app/build
       - ./react_ui/src:/app/src
       - ./react_ui/public:/app/public
+
