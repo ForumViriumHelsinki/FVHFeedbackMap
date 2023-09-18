@@ -7,4 +7,3 @@ from .map_data_points import (
     IotDeviceView as IotDeviceView,
 )
 from .recent_mappers import RecentMappersViewSet as RecentMappersViewSet
-

@@ -42,6 +42,9 @@ def send_to_kafka(sender, instance, created, **kwargs):
     for key in ["lat", "lon"]:
         payload[key] = float(data["fields"][key])
     payload["tags"] = json.loads(data["fields"]["tags"])
+    import httpx
+
+    httpx.post("https://iot-feedback-api.ecosystem-urbanage.eu/iot/send_data/", json=payload)
     # convert dict to bytes
     pl_bytes = json.dumps(payload, sort_keys=True).encode("utf-8")
     if producer is not None and os.getenv("KAFKA_FORWARD_TOPIC_NAME") and created:

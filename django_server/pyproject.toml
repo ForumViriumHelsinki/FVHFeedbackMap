@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 120
-target-version = ['py39', 'py310']
+target-version = ['py310', 'py311']
 exclude = '''
 (
   migrations         # migrations are automatically generated and should we excluded
@@ -29,7 +29,8 @@ force-exclude = '''
 
 [tool.ruff]
 line-length = 120
-
+ignore-init-module-imports = true
+extend-exclude = ["migrations"]
 # Enable Pyflakes `E` and `F` codes by default.
 select = ["E", "F"]
 ignore = []
